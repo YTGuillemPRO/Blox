@@ -24,6 +24,21 @@ class GameHandler {
         this.spawnPos = new THREE.Vector3(0, 0.5, 0);
         this.cameraSnap = false;
 
+        // === Partículas ===
+        this.particlePool = [];
+        this.activeParticles = [];
+        this.cameraShakeTime = 0;
+        this.cameraShakeIntensity = 0;
+        this.dustTimer = 0;
+
+        // === Minimapa ===
+        this.staticObjects = [];
+
+        // === Mouse drag ===
+        this.isRightDragging = false;
+        this.lastMouseX = 0;
+        this.lastMouseY = 0;
+
         this.init();
         this.createPlayer();
         this.registerBuilders();
@@ -60,7 +75,7 @@ class GameHandler {
         this.scene.add(ambient);
 
         const sun = new THREE.DirectionalLight(0xffffff, 1.1);
-        sun.position.set(60, 100, 50);
+        sun.position.set(120, 240, -80);
         sun.castShadow = true;
         sun.shadow.mapSize.width = 2048;
         sun.shadow.mapSize.height = 2048;
@@ -70,17 +85,43 @@ class GameHandler {
         sun.shadow.camera.top = d;
         sun.shadow.camera.bottom = -d;
         sun.shadow.camera.near = 10;
-        sun.shadow.camera.far = 250;
+        sun.shadow.camera.far = 300;
         this.scene.add(sun);
 
         const fill = new THREE.DirectionalLight(0xfff1cc, 0.3);
         fill.position.set(-50, 30, -30);
         this.scene.add(fill);
 
+        // === Sol visible en el cielo ===
+        this.addSkySun();
+
         window.addEventListener('resize', () => this.onWindowResize(), false);
 
         const loading = document.getElementById('loading-screen');
         if (loading) loading.style.display = 'none';
+    }
+
+    addSkySun() {
+        const sunCore = new THREE.Mesh(
+            new THREE.SphereGeometry(10, 24, 24),
+            new THREE.MeshBasicMaterial({ color: 0xfff8a0 })
+        );
+        sunCore.position.set(120, 240, -80);
+        this.scene.add(sunCore);
+
+        const glow1 = new THREE.Mesh(
+            new THREE.SphereGeometry(17, 24, 24),
+            new THREE.MeshBasicMaterial({ color: 0xfff8a0, transparent: true, opacity: 0.3 })
+        );
+        glow1.position.copy(sunCore.position);
+        this.scene.add(glow1);
+
+        const glow2 = new THREE.Mesh(
+            new THREE.SphereGeometry(26, 24, 24),
+            new THREE.MeshBasicMaterial({ color: 0xfff8a0, transparent: true, opacity: 0.12 })
+        );
+        glow2.position.copy(sunCore.position);
+        this.scene.add(glow2);
     }
 
     onWindowResize() {
@@ -191,7 +232,123 @@ class GameHandler {
     }
 
     /* ==========================================================
-       GAME SYSTEM — cargar y descargar juegos
+       FLOATING TEXT (R$ sobre el personaje)
+       ========================================================== */
+    showFloatingText(text, color = '#4cd964', worldPos) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        div.style.cssText = `
+            color: ${color};
+            font: 800 22px 'Source Sans Pro';
+            text-shadow: 0 0 6px rgba(0,0,0,0.85), 0 2px 0 rgba(0,0,0,0.5);
+            pointer-events: none;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+            transition: none;
+            transform-origin: center;
+            will-change: transform, opacity;
+        `;
+        const obj = new CSS2DObject(div);
+        obj.position.copy(worldPos);
+        obj.position.y += 4;
+        this.scene.add(obj);
+
+        const startY = obj.position.y;
+        let t = 0;
+        const dur = 1.4;
+        const step = () => {
+            t += 1 / 60;
+            if (t >= dur) {
+                this.scene.remove(obj);
+                if (obj.element.parentNode) obj.element.parentNode.removeChild(obj.element);
+                return;
+            }
+            obj.position.y = startY + t * 2.5;
+            const p = t / dur;
+            obj.element.style.opacity = Math.max(0, 1 - p * p);
+            obj.element.style.fontSize = `${22 + p * 14}px`;
+            requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    }
+
+    /* ==========================================================
+       PARTICLE SYSTEM con pool de objetos
+       ========================================================== */
+    emitParticles(position, options = {}) {
+        const {
+            count = 10,
+            color = 0xffffff,
+            size = 0.3,
+            speed = 5,
+            lifetime = 1,
+            gravity = 8,
+            spread = 1,
+            upwardBias = 0.5,
+        } = options;
+
+        for (let i = 0; i < count; i++) {
+            const p = this.acquireParticle();
+            p.material.color.setHex(color);
+            p.material.opacity = 1;
+            p.scale.setScalar(size);
+            p.position.copy(position);
+
+            const angle = Math.random() * Math.PI * 2;
+            const horiz = speed * spread * (0.5 + Math.random() * 0.7);
+            const vert = speed * upwardBias * (0.7 + Math.random() * 0.6);
+
+            p.userData.velocity.set(
+                Math.cos(angle) * horiz,
+                vert,
+                Math.sin(angle) * horiz
+            );
+            p.userData.life = lifetime * (0.7 + Math.random() * 0.6);
+            p.userData.maxLife = p.userData.life;
+            p.userData.gravity = gravity;
+            p.userData.rotSpeed = (Math.random() - 0.5) * 10;
+
+            this.scene.add(p);
+            this.activeParticles.push(p);
+        }
+    }
+
+    acquireParticle() {
+        if (this.particlePool.length > 0) {
+            const p = this.particlePool.pop();
+            p.visible = true;
+            return p;
+        }
+        const p = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 1, 1),
+            new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true })
+        );
+        return p;
+    }
+
+    updateParticles(dt) {
+        for (let i = this.activeParticles.length - 1; i >= 0; i--) {
+            const p = this.activeParticles[i];
+            p.userData.life -= dt;
+            if (p.userData.life <= 0) {
+                this.scene.remove(p);
+                this.activeParticles.splice(i, 1);
+                p.visible = false;
+                this.particlePool.push(p);
+                continue;
+            }
+            p.userData.velocity.y -= p.userData.gravity * dt;
+            p.position.x += p.userData.velocity.x * dt;
+            p.position.y += p.userData.velocity.y * dt;
+            p.position.z += p.userData.velocity.z * dt;
+            p.material.opacity = Math.max(0, p.userData.life / p.userData.maxLife);
+            p.rotation.x += dt * p.userData.rotSpeed;
+            p.rotation.z += dt * p.userData.rotSpeed * 0.7;
+        }
+    }
+
+    /* ==========================================================
+       GAME SYSTEM
        ========================================================== */
     registerBuilders() {
         this.builders.crossroads = () => this.buildCrossroads();
@@ -201,22 +358,27 @@ class GameHandler {
     }
 
     loadGame(name) {
-        // Limpieza del anterior
         this.cleanups.forEach(fn => { try { fn(); } catch (e) {} });
         this.cleanups = [];
+
+        // limpiar partículas
+        for (const p of this.activeParticles) this.scene.remove(p);
+        for (const p of this.particlePool) this.scene.remove(p);
+        this.activeParticles = [];
+        this.particlePool = [];
+
         this.ball = null;
         this.trophyPos = null;
+        this.staticObjects = [];
 
-        // Construir el nuevo
         if (this.builders[name]) {
             const cleanup = this.builders[name]();
             if (typeof cleanup === 'function') this.cleanups.push(cleanup);
             this.currentGame = name;
         }
 
-        // Reposicionar jugador al spawn
         this.respawn();
-        this.cameraSnap = true; // salto brusco de cámara al nuevo juego
+        this.cameraSnap = true;
     }
 
     respawn() {
@@ -228,7 +390,7 @@ class GameHandler {
     }
 
     /* ============================
-       MATERIALES REUTILIZABLES
+       MATERIALES
        ============================ */
     grassMaterial() {
         const canvas = document.createElement('canvas');
@@ -250,8 +412,7 @@ class GameHandler {
 
     stripedGrassMaterial() {
         const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 256;
+        canvas.width = 256; canvas.height = 256;
         const ctx = canvas.getContext('2d');
         const light = '#5d8c33';
         const dark = '#3b5320';
@@ -285,52 +446,56 @@ class GameHandler {
     }
 
     /* ==========================================================
-       JUEGO 1: CROSSROADS
+       CROSSROADS
        ========================================================== */
     buildCrossroads() {
         const meshes = [];
-        const add = (m) => { this.scene.add(m); meshes.push(m); };
+        const addObj = (mesh, minimap = null) => {
+            this.scene.add(mesh);
+            meshes.push(mesh);
+            if (minimap) this.staticObjects.push({ mesh, ...minimap });
+        };
 
         const base = new THREE.Mesh(
-            new THREE.BoxGeometry(120, 1, 120),
+            new THREE.BoxGeometry(140, 1, 140),
             this.grassMaterial()
         );
         base.position.y = -0.5;
         base.receiveShadow = true;
-        add(base);
+        addObj(base, { color: '#3b5320', size: 50 });
 
         this.spawnPos = new THREE.Vector3(0, 0.5, 0);
         const spawn = this.block(10, 1, 10, 0x6b9bd1);
         spawn.position.copy(this.spawnPos);
-        add(spawn);
+        addObj(spawn, { color: '#6b9bd1', size: 10 });
 
-        const tower = (x, z, c, h) => {
+        const tower = (x, z, c, h, mc, ms) => {
             for (let i = 0; i < h; i++) {
                 const b = this.block(4, 4, 4, c);
                 b.position.set(x, i * 4 + 2, z);
-                add(b);
+                addObj(b, { color: mc, size: ms });
             }
         };
-        tower(-22, -22, 0xff4444, 5);
-        tower(26, 16, 0x3388ff, 7);
-        tower(-32, 28, 0x44dd88, 4);
+        tower(-22, -22, 0xff4444, 5, '#ff4444', 8);
+        tower(26, 16, 0x3388ff, 7, '#3388ff', 8);
+        tower(-32, 28, 0x44dd88, 4, '#44dd88', 8);
 
-        const freeBlock = (x, y, z, w, h, d, c) => {
+        const fb = (x, y, z, w, h, d, c, mc, ms) => {
             const b = this.block(w, h, d, c);
             b.position.set(x, y + h / 2, z);
-            add(b);
+            addObj(b, { color: mc, size: ms });
         };
-        freeBlock(12, 0, -10, 3, 3, 3, 0xffd54a);
-        freeBlock(-16, 0, 22, 4, 2, 2, 0xff66cc);
-        freeBlock(0, 0, -18, 5, 5, 5, 0xffffff);
+        fb(12, 0, -10, 3, 3, 3, 0xffd54a, '#ffd54a', 5);
+        fb(-16, 0, 22, 4, 2, 2, 0xff66cc, '#ff66cc', 5);
+        fb(0, 0, -18, 5, 5, 5, 0xffffff, '#ffffff', 7);
 
         const tree = (x, z) => {
             const trunk = this.block(1, 4, 1, 0x5c3a1e);
             trunk.position.set(x, 2, z);
-            add(trunk);
+            addObj(trunk, { color: '#5c3a1e', size: 2 });
             const leaves = this.block(4, 4, 4, 0x228833);
             leaves.position.set(x, 6, z);
-            add(leaves);
+            addObj(leaves, { color: '#228833', size: 5 });
         };
         tree(-15, 5); tree(18, -2); tree(-8, 15); tree(12, 25); tree(28, 5);
 
@@ -339,26 +504,27 @@ class GameHandler {
     }
 
     /* ==========================================================
-       JUEGO 2: OBBY PARKOUR (zigzag ascendente)
+       OBBY
        ========================================================== */
     buildObby() {
         const meshes = [];
-        const add = (m) => { this.scene.add(m); meshes.push(m); };
+        const addObj = (mesh, minimap = null) => {
+            this.scene.add(mesh);
+            meshes.push(mesh);
+            if (minimap) this.staticObjects.push({ mesh, ...minimap });
+        };
 
-        // Lava inferior
         const lava = this.block(300, 1, 300, this.lavaMaterial());
         lava.position.y = -10;
-        add(lava);
+        addObj(lava, { color: '#ff3300', size: 80 });
 
-        // Plataforma inicial
         this.spawnPos = new THREE.Vector3(0, 1, 0);
         const start = this.block(8, 1, 8, 0x00cc66);
-        start.position.set(0, 0.5, 0);
         start.material.emissive = new THREE.Color(0x008844);
         start.material.emissiveIntensity = 0.3;
-        add(start);
+        start.position.set(0, 0.5, 0);
+        addObj(start, { color: '#00cc66', size: 8 });
 
-        // Camino de plataformas
         const dirs = [[5, 0], [5, -5], [0, -5], [-5, -5], [-5, 0], [-5, 5], [0, 5], [5, 5]];
         const colors = [0xff6688, 0x66ccff, 0xffcc44, 0x88ff66, 0xcc88ff, 0xff9966, 0x66ffcc, 0xff66cc];
         let x = 0, y = 2, z = -8;
@@ -370,7 +536,8 @@ class GameHandler {
             const color = colors[i % colors.length];
             const plat = this.block(w, 0.8, d, color);
             plat.position.set(x, y, z);
-            add(plat);
+            const hex = '#' + color.toString(16).padStart(6, '0');
+            addObj(plat, { color: hex, size: 5 });
             const dir = dirs[dirIdx % 8];
             x += dir[0];
             z += dir[1];
@@ -378,42 +545,44 @@ class GameHandler {
             dirIdx++;
         }
 
-        // Plataforma final con trofeo
         const finish = this.block(8, 1, 8, 0x66ff66);
         finish.material.emissive = new THREE.Color(0x44cc44);
         finish.material.emissiveIntensity = 0.5;
         finish.position.set(x, y, z);
-        add(finish);
+        addObj(finish, { color: '#66ff66', size: 9 });
 
         this.trophyPos = new THREE.Vector3(x, y + 2, z);
         const trophy = this.block(1.5, 3, 1.5, 0xffd700);
         trophy.material.emissive = new THREE.Color(0xffaa00);
         trophy.material.emissiveIntensity = 0.6;
         trophy.position.set(x, y + 2, z);
-        add(trophy);
+        addObj(trophy, { color: '#ffd700', size: 4 });
 
-        // Haz de luz del trofeo
         const beam = new THREE.Mesh(
             new THREE.CylinderGeometry(0.4, 0.4, 80, 12),
             new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.25 })
         );
         beam.position.set(x, y + 40, z);
-        add(beam);
+        addObj(beam, { color: '#ffff00', size: 3 });
 
         this.respawnY = -8;
         return () => {};
     }
 
     /* ==========================================================
-       JUEGO 3: TORRE INFERNAL (espiral ascendente)
+       TORRE
        ========================================================== */
     buildTower() {
         const meshes = [];
-        const add = (m) => { this.scene.add(m); meshes.push(m); };
+        const addObj = (mesh, minimap = null) => {
+            this.scene.add(mesh);
+            meshes.push(mesh);
+            if (minimap) this.staticObjects.push({ mesh, ...minimap });
+        };
 
         const lava = this.block(300, 1, 300, this.lavaMaterial());
         lava.position.y = -10;
-        add(lava);
+        addObj(lava, { color: '#ff3300', size: 80 });
 
         const ground = new THREE.Mesh(
             new THREE.BoxGeometry(70, 1, 70),
@@ -421,18 +590,16 @@ class GameHandler {
         );
         ground.position.y = -0.5;
         ground.receiveShadow = true;
-        add(ground);
+        addObj(ground, { color: '#3b5320', size: 30 });
 
         this.spawnPos = new THREE.Vector3(0, 1, 0);
 
-        // Torre central
         const towerHeight = 70;
         const centralMat = new THREE.MeshStandardMaterial({ color: 0x6e7681 });
         const central = this.block(10, towerHeight, 10, centralMat);
         central.position.set(0, towerHeight / 2, 0);
-        add(central);
+        addObj(central, { color: '#6e7681', size: 10 });
 
-        // Plataformas en espiral
         const numPlatforms = 22;
         const radius = 12;
         for (let i = 0; i < numPlatforms; i++) {
@@ -450,21 +617,18 @@ class GameHandler {
                 plat.material.emissive = new THREE.Color(0xffaa00);
                 plat.material.emissiveIntensity = 0.6;
             }
-            add(plat);
+            addObj(plat, { color: isLast ? '#ffd700' : '#4cd964', size: 4 });
         }
 
-        // Trofeo arriba
         const trophyTop = this.block(1.6, 4, 1.6, 0xffd700);
         trophyTop.position.set(0, towerHeight + 3, 0);
         trophyTop.material.emissive = new THREE.Color(0xff8800);
         trophyTop.material.emissiveIntensity = 0.5;
-        add(trophyTop);
+        addObj(trophyTop, { color: '#ffd700', size: 4 });
         const pole = this.block(0.3, 5, 0.3, 0x444444);
         pole.position.set(0, towerHeight + 7, 0);
-        add(pole);
         const flag = this.block(2, 1.2, 0.1, 0xff2222);
         flag.position.set(1.2, towerHeight + 8.7, 0);
-        add(flag);
 
         this.trophyPos = new THREE.Vector3(0, towerHeight + 4, 0);
         this.respawnY = -8;
@@ -472,46 +636,23 @@ class GameHandler {
     }
 
     /* ==========================================================
-       JUEGO 4: CANCHA DE FÚTBOL
+       FÚTBOL
        ========================================================== */
     buildSoccer() {
         const meshes = [];
-        const add = (m) => { this.scene.add(m); meshes.push(m); };
+        const addObj = (mesh, minimap = null) => {
+            this.scene.add(mesh);
+            meshes.push(mesh);
+            if (minimap) this.staticObjects.push({ mesh, ...minimap });
+        };
 
-        // Cesped a rayas
         const field = this.block(140, 1, 90, this.stripedGrassMaterial());
         field.position.y = -0.5;
-        add(field);
+        addObj(field, { color: '#3b5320', size: 60 });
 
-        // Líneas blancas
-        const lines = [
-            { p: [0, 0.05, 45], s: [140, 0.05, 0.4] },
-            { p: [0, 0.05, -45], s: [140, 0.05, 0.4] },
-            { p: [-70, 0.05, 0], s: [0.4, 0.05, 90] },
-            { p: [70, 0.05, 0], s: [0.4, 0.05, 90] },
-            { p: [0, 0.05, 0], s: [0.4, 0.05, 90] },
-        ];
-        for (const l of lines) {
-            const m = this.block(l.s[0], l.s[1], l.s[2], 0xffffff);
-            m.position.set(l.p[0], l.p[1], l.p[2]);
-            m.material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            add(m);
-        }
-        // Círculo central (octógono)
-        for (let i = 0; i < 16; i++) {
-            const ang = (i / 16) * Math.PI * 2;
-            const seg = this.block(2.5, 0.06, 0.3, 0xffffff);
-            seg.material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            seg.position.set(Math.cos(ang) * 12, 0.06, Math.sin(ang) * 12);
-            seg.rotation.y = -ang + Math.PI / 2;
-            add(seg);
-        }
+        addObj(this.makeGoal(-67, 0, 0, 0), { color: '#ffffff', size: 12 });
+        addObj(this.makeGoal(67, 0, 0, Math.PI), { color: '#ffffff', size: 12 });
 
-        // Porterías
-        add(this.makeGoal(-67, 0, 0, 0));
-        add(this.makeGoal(67, 0, 0, Math.PI));
-
-        // Pelota
         const ball = new THREE.Mesh(
             new THREE.SphereGeometry(1.2, 24, 24),
             new THREE.MeshStandardMaterial({ color: 0xffffff })
@@ -519,28 +660,14 @@ class GameHandler {
         ball.position.set(0, 1.5, 0);
         ball.castShadow = true;
         ball.receiveShadow = true;
-        add(ball);
+        addObj(ball, { color: '#ffffff', size: 2 });
         this.ball = ball;
 
-        // Banderines de esquina
         for (const [x, z] of [[-69, 44], [69, 44], [-69, -44], [69, -44]]) {
             const pole = this.block(0.15, 2.5, 0.15, 0xffff00);
             pole.position.set(x, 1.25, z);
-            add(pole);
             const corner = this.block(0.8, 0.5, 0.05, 0xff8800);
             corner.position.set(x + (x > 0 ? -0.45 : 0.45), 2.4, z);
-            add(corner);
-        }
-
-        // Vallas alrededor
-        const valla = new THREE.MeshStandardMaterial({ color: 0x666666 });
-        for (let x = -60; x <= 60; x += 20) {
-            const a = this.block(0.3, 4, 0.3, valla);
-            a.position.set(x, 2, 46);
-            add(a);
-            const b = this.block(0.3, 4, 0.3, valla);
-            b.position.set(x, 2, -46);
-            add(b);
         }
 
         this.spawnPos = new THREE.Vector3(0, 1, 35);
@@ -552,7 +679,6 @@ class GameHandler {
         const grp = new THREE.Group();
         const postMat = new THREE.MeshStandardMaterial({ color: 0xdddddd });
         const netMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 });
-
         const pL = new THREE.Mesh(new THREE.BoxGeometry(0.3, 4, 0.3), postMat);
         pL.position.set(0, 2, -8);
         grp.add(pL);
@@ -565,17 +691,13 @@ class GameHandler {
         const back = new THREE.Mesh(new THREE.BoxGeometry(0.05, 4, 16), netMat);
         back.position.set(-1.2, 2, 0);
         grp.add(back);
-        const top = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 16), netMat);
-        top.position.set(-0.6, 4, 0);
-        grp.add(top);
-
         grp.position.set(x, y, z);
         grp.rotation.y = rotY;
         return grp;
     }
 
     /* ==========================================================
-       PLAYER + INTERACCIONES
+       CONTROLS — clic derecho + arrastrar para rotar cámara
        ========================================================== */
     setupControls() {
         window.addEventListener('keydown', (e) => {
@@ -585,18 +707,33 @@ class GameHandler {
         window.addEventListener('keyup', (e) => this.keys[e.code] = false);
 
         const canvas = this.renderer.domElement;
-        canvas.addEventListener('click', () => {
-            if (document.pointerLockElement !== canvas) {
-                const active = document.activeElement;
-                if (active && active.tagName === 'INPUT') return;
-                canvas.requestPointerLock();
+        canvas.style.cursor = 'grab';
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button !== 2) return;
+            this.isRightDragging = true;
+            this.lastMouseX = e.clientX;
+            this.lastMouseY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (this.isRightDragging && e.button === 2) {
+                this.isRightDragging = false;
+                canvas.style.cursor = 'grab';
             }
         });
-        document.addEventListener('mousemove', (e) => {
-            if (document.pointerLockElement !== canvas) return;
-            this.cameraYaw -= e.movementX * 0.005;
-            this.cameraPitch -= e.movementY * 0.003;
+
+        window.addEventListener('mousemove', (e) => {
+            if (!this.isRightDragging) return;
+            const dx = e.clientX - this.lastMouseX;
+            const dy = e.clientY - this.lastMouseY;
+            this.cameraYaw -= dx * 0.005;
+            this.cameraPitch -= dy * 0.003;
             this.cameraPitch = Math.max(0.15, Math.min(1.4, this.cameraPitch));
+            this.lastMouseX = e.clientX;
+            this.lastMouseY = e.clientY;
         });
     }
 
@@ -604,8 +741,7 @@ class GameHandler {
         const active = document.activeElement;
         return active && (
             active.id === 'chat-input' ||
-            active.id === 'discover-search' ||
-            (active.tagName === 'INPUT' && active.classList?.contains('discover-search'))
+            active.id === 'discover-search'
         );
     }
 
@@ -653,28 +789,50 @@ class GameHandler {
             this.walkPhase *= 0.82;
         }
 
+        // Salto
         if (this.keys['Space'] && this.isGrounded) {
             this.jumpVel = 11;
             this.isGrounded = false;
+            this.emitParticles(
+                new THREE.Vector3(this.player.position.x, 0.2, this.player.position.z),
+                { count: 6, color: 0xddccaa, size: 0.3, speed: 3, lifetime: 0.6, gravity: 3, upwardBias: 0.2 }
+            );
         }
+
         if (!this.isGrounded) {
             this.jumpVel += this.gravity * dt;
             this.player.position.y += this.jumpVel * dt;
             if (this.player.position.y <= 0) {
+                const dropVel = this.jumpVel;
                 this.player.position.y = 0;
                 this.jumpVel = 0;
                 this.isGrounded = true;
+                if (dropVel < -8) {
+                    this.emitParticles(
+                        new THREE.Vector3(this.player.position.x, 0.3, this.player.position.z),
+                        { count: 14, color: 0xc8b890, size: 0.4, speed: 5, lifetime: 0.9, gravity: 4, upwardBias: 0.3, spread: 1.2 }
+                    );
+                    this.cameraShakeTime = 0.35;
+                    this.cameraShakeIntensity = Math.min(0.6, Math.abs(dropVel) * 0.05);
+                }
+            }
+        } else if (isMoving) {
+            this.dustTimer += dt;
+            if (this.dustTimer > 0.25) {
+                this.dustTimer = 0;
+                this.emitParticles(
+                    new THREE.Vector3(this.player.position.x, 0.1, this.player.position.z),
+                    { count: 1, color: 0xddccaa, size: 0.18, speed: 1, lifetime: 0.4, gravity: 1, upwardBias: 0.1 }
+                );
             }
         }
 
-        // Caída al vacío
         if (this.player.position.y < this.respawnY) {
             this.respawn();
             this.cameraSnap = true;
             window.dispatchEvent(new CustomEvent('player-fell'));
         }
 
-        // Llegar al trofeo
         if (this.trophyPos) {
             const d = this.player.position.distanceTo(this.trophyPos);
             if (d < 3.5) {
@@ -683,9 +841,7 @@ class GameHandler {
             }
         }
 
-        // Pelota del fútbol
         if (this.ball && this.currentGame === 'soccer') this.updateBall(dt);
-
         this.animateLimbs();
     }
 
@@ -695,18 +851,14 @@ class GameHandler {
         this.ball.position.z += this.ballVelocity.z * dt;
         this.ball.position.y = 1.5;
 
-        // Rodar visualmente
         const speed = Math.hypot(this.ballVelocity.x, this.ballVelocity.z);
         if (speed > 0.1) {
             this.ball.rotation.z -= this.ballVelocity.x * dt * 0.5;
             this.ball.rotation.x += this.ballVelocity.z * dt * 0.5;
         }
-
-        // Mantener en el campo
         this.ball.position.x = Math.max(-68, Math.min(68, this.ball.position.x));
         this.ball.position.z = Math.max(-43, Math.min(43, this.ball.position.z));
 
-        // Empujar al chocar con el jugador
         const dx = this.ball.position.x - this.player.position.x;
         const dz = this.ball.position.z - this.player.position.z;
         const dist = Math.hypot(dx, dz);
@@ -717,7 +869,6 @@ class GameHandler {
             this.ballVelocity.z = pushZ * 9;
         }
 
-        // Detección de gol
         if (this.ball.position.x < -60 && Math.abs(this.ball.position.z) < 8) {
             window.dispatchEvent(new CustomEvent('player-scored', { detail: 'left' }));
             this.ball.position.set(0, 1.5, 0);
@@ -739,7 +890,7 @@ class GameHandler {
         });
     }
 
-    updateCamera() {
+    updateCamera(dt) {
         const target = this.player.position.clone().add(new THREE.Vector3(0, 4, 0));
         const cp = Math.cos(this.cameraPitch);
         const sp = Math.sin(this.cameraPitch);
@@ -750,6 +901,16 @@ class GameHandler {
             sp * this.cameraDistance,
             cy * cp * this.cameraDistance
         );
+
+        // Camera shake
+        if (this.cameraShakeTime > 0) {
+            this.cameraShakeTime -= dt;
+            const k = Math.max(0, this.cameraShakeTime / 0.35) * this.cameraShakeIntensity;
+            offset.x += (Math.random() - 0.5) * k * 1.5;
+            offset.y += (Math.random() - 0.5) * k;
+            offset.z += (Math.random() - 0.5) * k * 0.3;
+        }
+
         const desired = target.clone().add(offset);
         if (this.cameraSnap) {
             this.camera.position.copy(desired);
@@ -768,7 +929,8 @@ class GameHandler {
         dt = Math.min(dt, 0.05);
 
         this.updatePlayer(dt);
-        this.updateCamera();
+        this.updateCamera(dt);
+        this.updateParticles(dt);
 
         this.renderer.render(this.scene, this.camera);
         this.labelRenderer.render(this.scene, this.camera);
