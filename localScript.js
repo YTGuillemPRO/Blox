@@ -2,7 +2,6 @@ class LocalGameScript {
     constructor() {
         this.playerMoney = 1000;
         this.playerHealth = 100;
-        this.isChatFocused = false;
 
         this.initUI();
         this.initChat();
@@ -19,7 +18,6 @@ class LocalGameScript {
         this.moneyDisplay.innerText = `${this.playerMoney} R$`;
         this.healthFill.style.width = `${this.playerHealth}%`;
         
-        // Cambiar color de vida si está baja (clásico rojo)
         if(this.playerHealth < 30) {
             this.healthFill.style.backgroundColor = '#CC0000';
         } else {
@@ -31,23 +29,34 @@ class LocalGameScript {
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
 
-        chatInput.addEventListener('focus', () => {
-            this.isChatFocused = true;
-        });
-
-        chatInput.addEventListener('blur', () => {
-            this.isChatFocused = false;
-        });
-
+        // Asegurarnos de que el input siempre reciba el evento keydown
         chatInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && chatInput.value.trim() !== '') {
-                const msg = document.createElement('div');
-                // Formato clásico: [Player_Clasic]: mensaje
-                msg.innerHTML = `<b style="color: #000;">[Player_Clasic]:</b> ${chatInput.value}`;
-                chatMessages.appendChild(msg);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-                chatInput.value = '';
-                chatInput.blur();
+            // e.stopPropagation() evita que otros listeners del documento interfieran
+            e.stopPropagation(); 
+            
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Evita saltos de línea o comportamientos raros
+                const text = chatInput.value.trim();
+                
+                if (text !== '') {
+                    // 1. Añadir al historial del chat
+                    const msg = document.createElement('div');
+                    msg.innerHTML = `<b style="color: #000;">[Player_Clasic]:</b> ${text}`;
+                    chatMessages.appendChild(msg);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    
+                    // 2. Mostrar el globo de chat encima del personaje en 3D
+                    if (window.GameHandler && window.GameHandler.showChatBubble) {
+                        window.GameHandler.showChatBubble(text);
+                    }
+                    
+                    // 3. Limpiar input y quitar foco
+                    chatInput.value = '';
+                    chatInput.blur(); 
+                } else {
+                    // Si está vacío y presiona enter, simplemente quitar el foco
+                    chatInput.blur();
+                }
             }
         });
     }
@@ -72,7 +81,6 @@ class LocalGameScript {
     }
 }
 
-// Esperar a que el DOM y el GameHandler estén listos
 window.addEventListener('load', () => {
     const checkGameHandler = setInterval(() => {
         if (window.GameHandler && window.GameHandler.scene) {
