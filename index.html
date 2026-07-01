@@ -3,15 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blox</title>
+    <title>Roblox Classic - Three.js Engine</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #87CEEB; }
-        canvas { display: block; }
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background-color: #87CEEB; /* Cielo azul de respaldo */
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* === INTERFAZ CLÁSICA ROBLOX (Mate/Plana) === */
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            user-select: none;
+        }
+
+        /* --- Leaderboard (Esquina Superior Derecha) --- */
+        .leaderboard {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #000;
+            font-weight: bold;
+            color: #000;
+            font-size: 14px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .leaderboard table {
+            border-collapse: collapse;
+            width: 100%;
+            text-align: left;
+        }
+
+        .leaderboard th, .leaderboard td {
+            padding: 4px 10px;
+            border-bottom: 1px solid #888;
+        }
+
+        .leaderboard th {
+            background-color: #ccc;
+        }
+
+        .leaderboard tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* --- Chat (Esquina Superior Izquierda) --- */
+        .chat-box {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 320px;
+            height: 180px;
+            border: 2px solid #000;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            border-radius: 2px;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 5px;
+            overflow-y: auto;
+            color: #000;
+            font-size: 13px;
+        }
+
+        .chat-input-box {
+            border-top: 2px solid #000;
+            background-color: #fff;
+            padding: 2px;
+            pointer-events: auto;
+        }
+
+        .chat-input-box input {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #555;
+            padding: 3px;
+            font-family: Arial, sans-serif;
+        }
+
+        /* --- Barra de Salud (Esquina Inferior Derecha) --- */
+        .health-container {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 180px;
+            height: 24px;
+            background-color: #000;
+            border: 2px solid #000;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .health-bar {
+            height: 100%;
+            width: 100%;
+            background-color: #00CC00; /* Verde clásico */
+            transition: width 0.2s;
+        }
+
+        /* --- Hotbar / Herramientas (Inferior Centro) --- */
+        .hotbar {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            background-color: rgba(255,255,255,0.2);
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .slot {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(50, 50, 50, 0.8);
+            border: 2px solid #000;
+            border-radius: 2px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        /* --- Pantalla de Carga --- */
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            font-size: 24px;
+        }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
 </head>
 <body>
-    <script src="gameHandler.js"></script>
-    <script src="localScript.js"></script>
+    <div id="game-container">
+        <div id="loading-screen">Cargando Mundo Clásico...</div>
+
+        <div class="ui-overlay">
+            <!-- Leaderboard -->
+            <div class="leaderboard">
+                <table>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Dinero</th>
+                    </tr>
+                    <tr>
+                        <td>Player_Clasic</td>
+                        <td id="money-amount">1000 R$</td>
+                    </tr>
+                    <tr>
+                        <td>Guest_2008</td>
+                        <td>50 R$</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Chat -->
+            <div class="chat-box">
+                <div class="chat-messages" id="chat-messages">
+                    <div><b style="color:#0055FF;">Sistema:</b> Bienvenido a Roblox Classic World!</div>
+                </div>
+                <div class="chat-input-box">
+                    <input type="text" id="chat-input" placeholder="Presiona Enter para chatear...">
+                </div>
+            </div>
+
+            <!-- Hotbar -->
+            <div class="hotbar">
+                <div class="slot">1</div>
+                <div class="slot">2</div>
+                <div class="slot">3</div>
+                <div class="slot">4</div>
+                <div class="slot">5</div>
+            </div>
+
+            <!-- Barra de Vida -->
+            <div class="health-container">
+                <div class="health-bar" id="health-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="gameHandler.js"></script>
+    <script type="module" src="localScript.js"></script>
 </body>
 </html>
