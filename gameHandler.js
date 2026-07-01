@@ -31,10 +31,8 @@ class GameHandler {
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-        document.getElementById('game-container').appendChild(this.renderer.domElement);
+        const container = document.getElementById('game-container');
+        container.appendChild(this.renderer.domElement);
 
         this.labelRenderer = new CSS2DRenderer();
         this.labelRenderer.setSize(window.innerWidth, window.innerHeight);
@@ -43,7 +41,11 @@ class GameHandler {
         this.labelRenderer.domElement.style.left = '0';
         this.labelRenderer.domElement.style.pointerEvents = 'none';
         this.labelRenderer.domElement.style.zIndex = '5';
-        document.getElementById('game-container').appendChild(this.labelRenderer.domElement);
+        container.appendChild(this.labelRenderer.domElement);
+
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
         const ambient = new THREE.AmbientLight(0xffffff, 0.65);
         this.scene.add(ambient);
@@ -142,22 +144,28 @@ class GameHandler {
             this.structures.push(b);
         };
 
-        tower(-20, -20, 0xff4444, 5);
-        tower(25, 15, 0x3388ff, 7);
-        block(10, 0, -10, 3, 3, 3, 0xffd54a);
-        block(-15, 0, 20, 4, 2, 2, 0xff66cc);
-        block(0, 0, -15, 5, 5, 5, 0xffffff);
-        // Spawn platform (un spawn visible para el jugador)
-        block(0, 0, 0, 8, 1, 8, 0x6b9bd1);
+        tower(-22, -22, 0xff4444, 5);
+        tower(26, 16, 0x3388ff, 7);
+        block(12, 0, -10, 3, 3, 3, 0xffd54a);
+        block(-16, 0, 22, 4, 2, 2, 0xff66cc);
+        block(0, 0, -18, 5, 5, 5, 0xffffff);
+
+        // Bosque de "spawn": spawn platform con bloques decorativos
+        block(0, 0, 0, 10, 1, 10, 0x6b9bd1);
+        block(-18, 0, 8, 2, 6, 2, 0x8b4513);
+        block(18, 0, -8, 2, 6, 2, 0x8b4513);
     }
 
     createPlayer() {
         this.player = new THREE.Group();
-        const skin = 0xf2c280;
-        const shirt = 0x1e7ad6;
-        const pants = 0x1a4f99;
 
-        // Head
+        // === El icónico noob de Roblox: cabeza amarilla, camisa azul, pantalón verde ===
+        const skin = 0xffcc4d;      // amarillo icónico
+        const shirt = 0x1e7ad6;     // azul
+        const pants = 0x7fb539;     // verde lima
+        const accent = 0x000000;
+
+        // Cabeza
         const head = new THREE.Mesh(
             new THREE.BoxGeometry(2.2, 2.2, 2.2),
             new THREE.MeshStandardMaterial({ color: skin })
@@ -166,24 +174,24 @@ class GameHandler {
         head.castShadow = true;
         this.player.add(head);
 
-        // Face (cara sonriente estilo noob)
-        const smile = new THREE.Mesh(
-            new THREE.BoxGeometry(1, 0.2, 0.05),
-            new THREE.MeshBasicMaterial({ color: 0x000000 })
-        );
-        smile.position.set(0, 6.25, 1.12);
-        this.player.add(smile);
-
+        // Cara: 2 ojos y una sonrisa
         const eyeL = new THREE.Mesh(
-            new THREE.BoxGeometry(0.25, 0.35, 0.05),
-            new THREE.MeshBasicMaterial({ color: 0x000000 })
+            new THREE.BoxGeometry(0.28, 0.38, 0.06),
+            new THREE.MeshBasicMaterial({ color: accent })
         );
-        eyeL.position.set(-0.5, 6.7, 1.12);
+        eyeL.position.set(-0.5, 6.75, 1.12);
         this.player.add(eyeL);
 
         const eyeR = eyeL.clone();
         eyeR.position.x = 0.5;
         this.player.add(eyeR);
+
+        const smile = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 0.2, 0.06),
+            new THREE.MeshBasicMaterial({ color: accent })
+        );
+        smile.position.set(0, 6.25, 1.12);
+        this.player.add(smile);
 
         // Torso
         const torso = new THREE.Mesh(
@@ -194,7 +202,7 @@ class GameHandler {
         torso.castShadow = true;
         this.player.add(torso);
 
-        // Arms
+        // Brazos
         const armGeo = new THREE.BoxGeometry(1.2, 3, 1.2);
         const armMat = new THREE.MeshStandardMaterial({ color: shirt });
 
@@ -204,13 +212,13 @@ class GameHandler {
         armL.userData.isArm = 'left';
         this.player.add(armL);
 
-        const armR = armL.clone();
-        armR.material = armMat;
+        const armR = new THREE.Mesh(armGeo, armMat);
         armR.position.x = 2.35;
+        armR.castShadow = true;
         armR.userData.isArm = 'right';
         this.player.add(armR);
 
-        // Legs
+        // Piernas
         const legGeo = new THREE.BoxGeometry(1.4, 2.8, 1.4);
         const legMat = new THREE.MeshStandardMaterial({ color: pants });
 
@@ -220,15 +228,15 @@ class GameHandler {
         legL.userData.isLeg = 'left';
         this.player.add(legL);
 
-        const legR = legL.clone();
-        legR.material = legMat;
+        const legR = new THREE.Mesh(legGeo, legMat);
         legR.position.x = 0.75;
+        legR.castShadow = true;
         legR.userData.isLeg = 'right';
         this.player.add(legR);
 
         this.scene.add(this.player);
 
-        // === Username tag (always visible above head) ===
+        // === Username tag sobre la cabeza ===
         const nameDiv = document.createElement('div');
         nameDiv.className = 'username-3d';
         nameDiv.textContent = 'Player_Clasic';
@@ -236,7 +244,7 @@ class GameHandler {
         this.nameLabel.position.set(0, 8.5, 0);
         this.player.add(this.nameLabel);
 
-        // === Chat bubble (above username) ===
+        // === Burbuja de chat (por encima del nombre) ===
         const chatDiv = document.createElement('div');
         chatDiv.className = 'chat-bubble-3d';
         chatDiv.style.display = 'none';
@@ -265,10 +273,15 @@ class GameHandler {
         });
         window.addEventListener('keyup', (e) => this.keys[e.code] = false);
 
-        // Mouse-look con Pointer Lock — click para entrar
+        // Mouse-look con Pointer Lock — clic para activar
         const canvas = this.renderer.domElement;
         canvas.addEventListener('click', () => {
-            if (document.pointerLockElement !== canvas) canvas.requestPointerLock();
+            if (document.pointerLockElement !== canvas) {
+                // Solo bloquear si NO estamos escribiendo en un input
+                const active = document.activeElement;
+                if (active && active.tagName === 'INPUT') return;
+                canvas.requestPointerLock();
+            }
         });
         document.addEventListener('mousemove', (e) => {
             if (document.pointerLockElement !== canvas) return;
@@ -276,23 +289,16 @@ class GameHandler {
             this.cameraPitch -= e.movementY * 0.003;
             this.cameraPitch = Math.max(0.15, Math.min(1.4, this.cameraPitch));
         });
-
-        // Cuando suelta el lock, no mover al jugador
-        document.addEventListener('pointerlockchange', () => {
-            if (document.pointerLockElement !== canvas) {
-                // opcional: no hacer nada
-            }
-        });
     }
 
     isChatFocused() {
-        return document.activeElement === document.getElementById('chat-input');
+        const active = document.activeElement;
+        return active && (active.id === 'chat-input' || active.tagName === 'INPUT');
     }
 
     updatePlayer(dt) {
         if (this.isChatFocused()) {
-            // reducir fase de caminata si está escribiendo
-            this.walkPhase *= 0.85;
+            this.walkPhase *= 0.82;
             this.animateLimbs();
             return;
         }
@@ -306,7 +312,6 @@ class GameHandler {
         const isMoving = move.lengthSq() > 0;
         if (isMoving) {
             move.normalize();
-            // Rotar el vector de movimiento por el yaw de la cámara (estilo Roblox)
             const sin = Math.sin(this.cameraYaw);
             const cos = Math.cos(this.cameraYaw);
             const mx = move.x * cos + move.z * sin;
@@ -318,7 +323,6 @@ class GameHandler {
             this.player.position.x = Math.max(-48, Math.min(48, this.player.position.x + move.x));
             this.player.position.z = Math.max(-48, Math.min(48, this.player.position.z + move.z));
 
-            // Cara al sentido de la marcha
             const targetYaw = Math.atan2(move.x, move.z);
             let cur = this.player.rotation.y;
             let diff = targetYaw - cur;
@@ -331,7 +335,6 @@ class GameHandler {
             this.walkPhase *= 0.82;
         }
 
-        // Salto
         if (this.keys['Space'] && this.isGrounded) {
             this.jumpVel = 11;
             this.isGrounded = false;
@@ -380,12 +383,11 @@ class GameHandler {
         const now = performance.now();
         let dt = (now - this.lastTime) / 1000;
         this.lastTime = now;
-        dt = Math.min(dt, 0.05); // cap por si hay un frame largo
+        dt = Math.min(dt, 0.05);
 
         this.updatePlayer(dt);
         this.updateCamera();
 
-        // Mini animación del bloque blanco (decorativo)
         if (this.structures) {
             const central = this.structures.find(s => s.material.color.getHex() === 0xffffff);
             if (central) central.rotation.y += dt * 0.3;
@@ -393,6 +395,13 @@ class GameHandler {
 
         this.renderer.render(this.scene, this.camera);
         this.labelRenderer.render(this.scene, this.camera);
+    }
+
+    respawn() {
+        this.player.position.set(0, 0, 0);
+        this.player.rotation.y = 0;
+        this.jumpVel = 0;
+        this.isGrounded = true;
     }
 }
 
