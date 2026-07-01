@@ -3,13 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Classic - Three.js Engine</title>
+    <title>Blox - Roblox Classic</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --r-blue: #00a2ff;
+            --r-blue-dark: #006bb3;
+            --r-bg: #191919;
+            --r-bg2: #2c2c2c;
+            --r-gray: #4a4a4a;
+        }
+
+        * { box-sizing: border-box; }
+
         body {
             margin: 0;
             overflow: hidden;
-            font-family: 'Arial', sans-serif;
-            background-color: #87CEEB; /* Cielo azul de respaldo */
+            font-family: 'Source Sans Pro', Arial, sans-serif;
+            background-color: #6b9bd1;
+            color: white;
         }
 
         #game-container {
@@ -18,173 +30,283 @@
             position: relative;
         }
 
-        canvas {
-            display: block;
-        }
+        canvas { display: block; }
 
-        /* === INTERFAZ CLÁSICA ROBLOX (Mate/Plana) === */
         .ui-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             pointer-events: none;
             z-index: 10;
             user-select: none;
         }
 
-        /* --- Leaderboard (Esquina Superior Derecha) --- */
+        /* === TOP BAR === */
+        .top-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 48px;
+            background: linear-gradient(to bottom, #0073a5 0%, #005c84 100%);
+            border-bottom: 1px solid #002b3d;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            font-weight: 700;
+            pointer-events: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .top-bar .logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 1px 0 rgba(0,0,0,0.5);
+            margin-right: 24px;
+            letter-spacing: 1px;
+        }
+        .top-bar .server-info {
+            font-size: 13px;
+            font-weight: 400;
+            opacity: 0.85;
+        }
+
+        /* === ROBUX PILL === */
+        .money-pill {
+            position: absolute;
+            top: 58px;
+            right: 12px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 18px;
+            padding: 5px 14px;
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: auto;
+        }
+        .money-pill .r$ { color: #4cd964; font-weight: 800; }
+
+        /* === LEADERBOARD === */
         .leaderboard {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(255, 255, 255, 0.9);
-            border: 2px solid #000;
-            font-weight: bold;
-            color: #000;
-            font-size: 14px;
-            border-radius: 2px;
+            top: 100px;
+            right: 12px;
+            background: rgba(25, 25, 25, 0.88);
+            border: 1px solid rgba(0,0,0,0.6);
+            border-radius: 6px;
+            min-width: 200px;
             overflow: hidden;
-        }
-
-        .leaderboard table {
-            border-collapse: collapse;
-            width: 100%;
-            text-align: left;
-        }
-
-        .leaderboard th, .leaderboard td {
-            padding: 4px 10px;
-            border-bottom: 1px solid #888;
-        }
-
-        .leaderboard th {
-            background-color: #ccc;
-        }
-
-        .leaderboard tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* --- Chat (Esquina Superior Izquierda) --- */
-        .chat-box {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 320px;
-            height: 180px;
-            border: 2px solid #000;
-            background-color: rgba(255, 255, 255, 0.8);
-            display: flex;
-            flex-direction: column;
-            border-radius: 2px;
-        }
-
-        .chat-messages {
-            flex-grow: 1;
-            padding: 5px;
-            overflow-y: auto;
-            color: #000;
             font-size: 13px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
-
-        .chat-input-box {
-            border-top: 2px solid #000;
-            background-color: #fff;
-            padding: 2px;
-            pointer-events: auto;
+        .leaderboard h3 {
+            margin: 0;
+            padding: 7px 12px;
+            background: var(--r-blue-dark);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
         }
-
-        .chat-input-box input {
-            width: 100%;
-            box-sizing: border-box;
-            border: 1px solid #555;
-            padding: 3px;
-            font-family: Arial, sans-serif;
-        }
-
-        /* --- Barra de Salud (Esquina Inferior Derecha) --- */
-        .health-container {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            width: 180px;
-            height: 24px;
-            background-color: #000;
-            border: 2px solid #000;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .health-bar {
-            height: 100%;
-            width: 100%;
-            background-color: #00CC00; /* Verde clásico */
-            transition: width 0.2s;
-        }
-
-        /* --- Panel de Juegos (Inferior Centro) --- */
-        .games-panel {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(50, 50, 50, 0.9);
-            border: 2px solid #000;
-            padding: 10px;
+        .leaderboard .item {
             display: flex;
-            gap: 10px;
-            pointer-events: auto;
+            justify-content: space-between;
+            padding: 6px 12px;
+            border-top: 1px solid rgba(255,255,255,0.06);
         }
+        .leaderboard .item:first-of-type { border-top: none; }
+        .leaderboard .name { font-weight: 600; }
+        .leaderboard .money { color: #4cd964; font-weight: 700; }
 
-        .game-btn {
-            background-color: #fff;
-            border: 2px solid #000;
-            padding: 10px 15px;
-            font-family: 'Arial', sans-serif;
-            font-weight: bold;
+        /* === HELP HINT === */
+        .help {
+            position: absolute;
+            top: 60px;
+            left: 12px;
+            background: rgba(0,0,0,0.55);
+            padding: 8px 12px;
+            border-radius: 6px;
             font-size: 12px;
-            cursor: pointer;
-            color: #000;
-            text-align: center;
-            width: 80px;
-        }
-
-        .game-btn:hover {
-            background-color: #ddd;
-        }
-
-        /* --- Globo de chat 3D --- */
-        .chat-bubble-3d {
-            background-color: rgba(255, 255, 255, 0.9);
-            border: 2px solid #000;
-            padding: 4px 8px;
-            border-radius: 5px;
-            color: #000;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            font-weight: bold;
-            white-space: nowrap;
-            transform: translateY(-20px); /* Elevarlo sobre la cabeza */
+            line-height: 1.7;
             pointer-events: none;
         }
+        .help kbd {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 3px;
+            padding: 1px 6px;
+            font-family: monospace;
+            font-size: 11px;
+        }
 
-        /* --- Pantalla de Carga --- */
+        /* === CHAT (bottom-left) === */
+        .chat {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            width: 380px;
+            height: 220px;
+            background: rgba(25, 25, 25, 0.85);
+            border: 1px solid rgba(0,0,0,0.6);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            pointer-events: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .chat-header {
+            background: linear-gradient(to bottom, #0073a5, #005c84);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 7px 12px;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 6px 10px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+        .chat-messages::-webkit-scrollbar { width: 6px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        .chat-input {
+            border: none;
+            border-top: 1px solid rgba(0,0,0,0.4);
+            background: rgba(255,255,255,0.92);
+            color: #111;
+            padding: 9px 10px;
+            font: inherit;
+            font-size: 14px;
+            outline: none;
+        }
+        .chat-input:focus { background: white; }
+
+        /* === HEALTH BAR (bottom-right) === */
+        .healthbar {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 220px;
+            height: 26px;
+            background: rgba(0,0,0,0.75);
+            border: 2px solid #000;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.4);
+        }
+        .healthbar .fill {
+            height: 100%;
+            background: linear-gradient(to bottom, #00d68b 0%, #00b06f 60%, #008c58 100%);
+            transition: width 0.25s ease-out, background 0.2s;
+        }
+        .healthbar .label {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+        }
+
+        /* === GAMES PANEL === */
+        .games-panel {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            pointer-events: auto;
+        }
+        .game-btn {
+            background: linear-gradient(to bottom, #4a4a4a 0%, #2c2c2c 100%);
+            border: 1px solid #000;
+            border-radius: 4px;
+            padding: 8px 18px;
+            color: white;
+            font: 700 13px 'Source Sans Pro', Arial, sans-serif;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+        }
+        .game-btn:hover { background: linear-gradient(to bottom, #5a5a5a 0%, #3c3c3c 100%); }
+        .game-btn.active { background: linear-gradient(to bottom, #00a2ff 0%, #006bb3 100%); }
+
+        /* === CHAT BUBBLE (3D) === */
+        .chat-bubble-3d {
+            background: white;
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 6px 12px;
+            color: #111;
+            font: 600 14px 'Source Sans Pro', Arial, sans-serif;
+            max-width: 240px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.25);
+            position: relative;
+        }
+        .chat-bubble-3d::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 18px;
+            width: 0; height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid white;
+        }
+        .chat-bubble-3d::before {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 16px;
+            width: 0; height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid #000;
+        }
+
+        /* === USERNAME TAG (3D) === */
+        .username-3d {
+            background: var(--r-blue);
+            border: 2px solid rgba(0,0,0,0.55);
+            border-radius: 4px;
+            padding: 2px 10px;
+            color: white;
+            font: 700 13px 'Source Sans Pro', Arial, sans-serif;
+            text-shadow: 0 1px 0 rgba(0,0,0,0.5);
+            white-space: nowrap;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.3);
+        }
+
+        /* === LOADING === */
         #loading-screen {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            color: white;
+            inset: 0;
+            background: #191919;
             display: flex;
+            flex-direction: column;
+            gap: 16px;
             justify-content: center;
             align-items: center;
             z-index: 100;
-            font-size: 24px;
+            font-size: 18px;
+            font-weight: 600;
         }
+        #loading-screen .loader {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255,255,255,0.12);
+            border-top-color: var(--r-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
     <script type="importmap">
         {
@@ -197,47 +319,54 @@
 </head>
 <body>
     <div id="game-container">
-        <div id="loading-screen">Cargando Mundo Clásico...</div>
+        <div id="loading-screen">
+            <div class="loader"></div>
+            <div>Cargando Blox…</div>
+        </div>
 
         <div class="ui-overlay">
-            <!-- Leaderboard -->
+            <div class="top-bar">
+                <span class="logo">BLOX</span>
+                <span class="server-info">Servidor · Crossroads</span>
+            </div>
+
+            <div class="money-pill">
+                <span id="money-amount">1,000</span>
+                <span class="r$">R$</span>
+            </div>
+
             <div class="leaderboard">
-                <table>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Dinero</th>
-                    </tr>
-                    <tr>
-                        <td>Player_Clasic</td>
-                        <td id="money-amount">1000 R$</td>
-                    </tr>
-                    <tr>
-                        <td>Guest_2008</td>
-                        <td>50 R$</td>
-                    </tr>
-                </table>
+                <h3>Jugadores</h3>
+                <div class="item"><span class="name">Player_Clasic</span><span class="money" id="lb-money">1,000 R$</span></div>
+                <div class="item"><span class="name">Guest_2008</span><span class="money">50 R$</span></div>
+                <div class="item"><span class="name">xXBuilderXx</span><span class="money">12,400 R$</span></div>
+                <div class="item"><span class="name">NoobMaster</span><span class="money">3,250 R$</span></div>
             </div>
 
-            <!-- Chat -->
-            <div class="chat-box">
+            <div class="help">
+                <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> moverse &nbsp;·&nbsp;
+                <kbd>ESPACIO</kbd> saltar &nbsp;·&nbsp;
+                <kbd>ENTER</kbd> chat &nbsp;·&nbsp;
+                Click para rotar cámara
+            </div>
+
+            <div class="chat">
+                <div class="chat-header">Chat</div>
                 <div class="chat-messages" id="chat-messages">
-                    <div><b style="color:#0055FF;">Sistema:</b> Bienvenido a Roblox Classic World!</div>
+                    <div><b style="color:#1e90ff;">[Sistema]:</b> Bienvenido a <b>Blox</b> — servidor <b>Crossroads</b>.</div>
                 </div>
-                <div class="chat-input-box">
-                    <input type="text" id="chat-input" placeholder="Presiona Enter para chatear..." maxlength="50">
-                </div>
+                <input type="text" class="chat-input" id="chat-input" placeholder="Pulsa Enter para hablar..." maxlength="80">
             </div>
 
-            <!-- Panel de Juegos -->
             <div class="games-panel">
-                <button class="game-btn" onclick="alert('Cargando Crossroads...')">Crossroads</button>
-                <button class="game-btn" onclick="alert('Cargando Chaos Canyon...')">Chaos Canyon</button>
-                <button class="game-btn" onclick="alert('Cargando Rocket Arena...')">Rocket Arena</button>
+                <button class="game-btn active">Crossroads</button>
+                <button class="game-btn">Chaos Canyon</button>
+                <button class="game-btn">Rocket Arena</button>
             </div>
 
-            <!-- Barra de Vida -->
-            <div class="health-container">
-                <div class="health-bar" id="health-fill"></div>
+            <div class="healthbar">
+                <div class="fill" id="health-fill" style="width:100%"></div>
+                <div class="label"><span id="health-label">100/100</span></div>
             </div>
         </div>
     </div>
