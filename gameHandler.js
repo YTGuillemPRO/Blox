@@ -3,197 +3,73 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 
 class GameHandler {
     constructor() {
+        this.keys = {};
+        this.moveSpeed = 14;
+        this.cameraYaw = 0;
+        this.cameraPitch = 0.75;
+        this.cameraDistance = 20;
+        this.jumpVel = 0;
+        this.gravity = -32;
+        this.isGrounded = true;
+        this.walkPhase = 0;
+        this.lastTime = performance.now();
+
         this.init();
         this.createBaseplate();
         this.createStructures();
         this.createPlayer();
+        this.setupControls();
         this.animate();
     }
 
     init() {
-        // Escena
         this.scene = new THREE.Scene();
-        
-        // Fondo clásico de Roblox 2008 (Cielo azul claro)
-        this.scene.background = new THREE.Color(0x87CEEB);
-        this.scene.fog = new THREE.Fog(0x87CEEB, 100, 500); // Niebla para dar profundidad
+        this.scene.background = new THREE.Color(0xa1c8e8);
+        this.scene.fog = new THREE.Fog(0xa1c8e8, 100, 450);
 
-        // Cámara
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        // Cámara en vista de tercera persona
-        this.camera.position.set(0, 15, 25);
-        this.camera.lookAt(0, 5, 0);
+        this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-        // Renderer principal (WebGL)
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         document.getElementById('game-container').appendChild(this.renderer.domElement);
 
-        // Renderer para elementos HTML en 3D (Globos de chat)
         this.labelRenderer = new CSS2DRenderer();
         this.labelRenderer.setSize(window.innerWidth, window.innerHeight);
         this.labelRenderer.domElement.style.position = 'absolute';
-        this.labelRenderer.domElement.style.top = '0px';
+        this.labelRenderer.domElement.style.top = '0';
+        this.labelRenderer.domElement.style.left = '0';
         this.labelRenderer.domElement.style.pointerEvents = 'none';
+        this.labelRenderer.domElement.style.zIndex = '5';
         document.getElementById('game-container').appendChild(this.labelRenderer.domElement);
 
-        // Iluminación
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        this.scene.add(ambientLight);
+        const ambient = new THREE.AmbientLight(0xffffff, 0.65);
+        this.scene.add(ambient);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        dirLight.position.set(50, 100, 50);
-        dirLight.castShadow = true;
-        
-        dirLight.shadow.mapSize.width = 2048;
-        dirLight.shadow.mapSize.height = 2048;
-        dirLight.shadow.camera.near = 10;
-        dirLight.shadow.camera.far = 200;
-        dirLight.shadow.camera.left = -80;
-        dirLight.shadow.camera.right = 80;
-        dirLight.shadow.camera.top = 80;
-        dirLight.shadow.camera.bottom = -80;
-        
-        this.scene.add(dirLight);
+        const sun = new THREE.DirectionalLight(0xffffff, 1.1);
+        sun.position.set(60, 100, 50);
+        sun.castShadow = true;
+        sun.shadow.mapSize.width = 2048;
+        sun.shadow.mapSize.height = 2048;
+        const d = 80;
+        sun.shadow.camera.left = -d;
+        sun.shadow.camera.right = d;
+        sun.shadow.camera.top = d;
+        sun.shadow.camera.bottom = -d;
+        sun.shadow.camera.near = 10;
+        sun.shadow.camera.far = 250;
+        this.scene.add(sun);
+
+        const fill = new THREE.DirectionalLight(0xfff1cc, 0.3);
+        fill.position.set(-50, 30, -30);
+        this.scene.add(fill);
 
         window.addEventListener('resize', () => this.onWindowResize(), false);
 
-        const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) loadingScreen.style.display = 'none';
-    }
-
-    createBaseplate() {
-        const baseGeo = new THREE.BoxGeometry(100, 1, 100);
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 512;
-        const ctx = canvas.getContext('2d');
-        
-        ctx.fillStyle = '#3b5320'; 
-        ctx.fillRect(0, 0, 512, 512);
-        
-        ctx.strokeStyle = '#5f7a3b';
-        ctx.lineWidth = 4;
-        for (let i = 0; i <= 512; i += 64) {
-            ctx.beginPath();
-            ctx.moveTo(i, 0);
-            ctx.lineTo(i, 512);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(0, i);
-            ctx.lineTo(512, i);
-            ctx.stroke();
-        }
-
-        const baseTexture = new THREE.CanvasTexture(canvas);
-        baseTexture.wrapS = THREE.RepeatWrapping;
-        baseTexture.wrapT = THREE.RepeatWrapping;
-        baseTexture.repeat.set(10, 10);
-
-        const baseMat = new THREE.MeshStandardMaterial({ map: baseTexture });
-        
-        this.baseplate = new THREE.Mesh(baseGeo, baseMat);
-        this.baseplate.position.y = -0.5;
-        this.baseplate.receiveShadow = true;
-        this.scene.add(this.baseplate);
-
-        const edgeGeo = new THREE.EdgesGeometry(baseGeo);
-        const edgeMat = new THREE.LineBasicMaterial({ color: 0x000000 });
-        const edges = new THREE.LineSegments(edgeGeo, edgeMat);
-        edges.position.y = -0.5;
-        this.scene.add(edges);
-    }
-
-    createStructures() {
-        this.structures = [];
-
-        this.createTower(-20, 0, -20, 0xff0000, 5);
-        this.createTower(25, 0, 15, 0x0055ff, 7);
-        this.createBlock(10, 1.5, -10, 0xffff00, 3, 3, 3);
-        this.createBlock(-15, 1, 20, 0xff00ff, 2, 2, 2);
-        this.createBlock(0, 2.5, -15, 0xffffff, 5, 5, 5); 
-    }
-
-    createTower(x, y, z, color, height) {
-        const blockGeo = new THREE.BoxGeometry(4, 4, 4);
-        const blockMat = new THREE.MeshStandardMaterial({ color: color });
-        
-        for(let i = 0; i < height; i++) {
-            const block = new THREE.Mesh(blockGeo, blockMat);
-            block.position.set(x, y + (i * 4) + 2, z);
-            block.castShadow = true;
-            block.receiveShadow = true;
-            this.scene.add(block);
-            this.structures.push(block);
-        }
-    }
-
-    createBlock(x, y, z, color, w, h, d) {
-        const blockGeo = new THREE.BoxGeometry(w, h, d);
-        const blockMat = new THREE.MeshStandardMaterial({ color: color });
-        const block = new THREE.Mesh(blockGeo, blockMat);
-        block.position.set(x, y + (h/2), z);
-        block.castShadow = true;
-        block.receiveShadow = true;
-        this.scene.add(block);
-        this.structures.push(block);
-    }
-
-    createPlayer() {
-        // Crear un personaje clásico de bloques
-        this.player = new THREE.Group();
-        
-        const headGeo = new THREE.BoxGeometry(2, 2, 2);
-        const headMat = new THREE.MeshStandardMaterial({ color: 0xffcc00 }); // Cabeza amarilla
-        const head = new THREE.Mesh(headGeo, headMat);
-        head.position.y = 6;
-        head.castShadow = true;
-        this.player.add(head);
-        
-        const torsoGeo = new THREE.BoxGeometry(4, 4, 2);
-        const torsoMat = new THREE.MeshStandardMaterial({ color: 0x0055ff }); // Torso azul
-        const torso = new THREE.Mesh(torsoGeo, torsoMat);
-        torso.position.y = 3;
-        torso.castShadow = true;
-        this.player.add(torso);
-
-        const legGeo = new THREE.BoxGeometry(1.5, 4, 1.5);
-        const legMat = new THREE.MeshStandardMaterial({ color: 0x00aa00 }); // Piernas verdes
-        const leftLeg = new THREE.Mesh(legGeo, legMat);
-        leftLeg.position.set(-1, 1, 0);
-        leftLeg.castShadow = true;
-        this.player.add(leftLeg);
-        
-        const rightLeg = new THREE.Mesh(legGeo, legMat);
-        rightLeg.position.set(1, 1, 0);
-        rightLeg.castShadow = true;
-        this.player.add(rightLeg);
-
-        this.player.position.set(0, 0, 0);
-        this.scene.add(this.player);
-
-        // Configurar el globo de chat invisible por defecto
-        const chatDiv = document.createElement('div');
-        chatDiv.className = 'chat-bubble-3d';
-        chatDiv.style.display = 'none'; // Oculto al principio
-        this.chatLabel = new CSS2DObject(chatDiv);
-        this.chatLabel.position.set(0, 4, 0); // Posición relativa a la cabeza
-        this.player.add(this.chatLabel);
-    }
-
-    // Método para mostrar el chat encima del jugador
-    showChatBubble(text) {
-        this.chatLabel.element.innerHTML = text;
-        this.chatLabel.element.style.display = 'block';
-        
-        // Ocultar después de 4 segundos
-        clearTimeout(this.chatTimeout);
-        this.chatTimeout = setTimeout(() => {
-            this.chatLabel.element.style.display = 'none';
-        }, 4000);
+        const loading = document.getElementById('loading-screen');
+        if (loading) loading.style.display = 'none';
     }
 
     onWindowResize() {
@@ -203,22 +79,320 @@ class GameHandler {
         this.labelRenderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    animate() {
-        requestAnimationFrame(() => this.animate());
-        
-        const time = Date.now() * 0.0005;
-        
-        // Animar bloque blanco lejano
-        const centralBlock = this.structures.find(s => s.material.color.getHex() === 0xffffff);
-        if(centralBlock) {
-            centralBlock.rotation.y += 0.01;
+    createBaseplate() {
+        const size = 100;
+        const geo = new THREE.BoxGeometry(size, 1, size);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#3b5320';
+        ctx.fillRect(0, 0, 256, 256);
+        ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i <= 256; i += 32) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 256); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(256, i); ctx.stroke();
         }
 
-        // Hacer que el jugador mire hacia la cámara ligeramente o se quede quieto
-        // this.player.rotation.y += 0.01; 
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(20, 20);
+
+        const mat = new THREE.MeshStandardMaterial({ map: tex });
+        const base = new THREE.Mesh(geo, mat);
+        base.position.y = -0.5;
+        base.receiveShadow = true;
+        this.scene.add(base);
+
+        const edge = new THREE.LineSegments(
+            new THREE.EdgesGeometry(geo),
+            new THREE.LineBasicMaterial({ color: 0x000000 })
+        );
+        edge.position.y = -0.5;
+        this.scene.add(edge);
+    }
+
+    createStructures() {
+        this.structures = [];
+
+        const tower = (x, z, color, height) => {
+            for (let i = 0; i < height; i++) {
+                const b = new THREE.Mesh(
+                    new THREE.BoxGeometry(4, 4, 4),
+                    new THREE.MeshStandardMaterial({ color })
+                );
+                b.position.set(x, i * 4 + 2, z);
+                b.castShadow = true;
+                b.receiveShadow = true;
+                this.scene.add(b);
+                this.structures.push(b);
+            }
+        };
+
+        const block = (x, y, z, w, h, d, color) => {
+            const b = new THREE.Mesh(
+                new THREE.BoxGeometry(w, h, d),
+                new THREE.MeshStandardMaterial({ color })
+            );
+            b.position.set(x, y + h / 2, z);
+            b.castShadow = true;
+            b.receiveShadow = true;
+            this.scene.add(b);
+            this.structures.push(b);
+        };
+
+        tower(-20, -20, 0xff4444, 5);
+        tower(25, 15, 0x3388ff, 7);
+        block(10, 0, -10, 3, 3, 3, 0xffd54a);
+        block(-15, 0, 20, 4, 2, 2, 0xff66cc);
+        block(0, 0, -15, 5, 5, 5, 0xffffff);
+        // Spawn platform (un spawn visible para el jugador)
+        block(0, 0, 0, 8, 1, 8, 0x6b9bd1);
+    }
+
+    createPlayer() {
+        this.player = new THREE.Group();
+        const skin = 0xf2c280;
+        const shirt = 0x1e7ad6;
+        const pants = 0x1a4f99;
+
+        // Head
+        const head = new THREE.Mesh(
+            new THREE.BoxGeometry(2.2, 2.2, 2.2),
+            new THREE.MeshStandardMaterial({ color: skin })
+        );
+        head.position.y = 6.5;
+        head.castShadow = true;
+        this.player.add(head);
+
+        // Face (cara sonriente estilo noob)
+        const smile = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 0.2, 0.05),
+            new THREE.MeshBasicMaterial({ color: 0x000000 })
+        );
+        smile.position.set(0, 6.25, 1.12);
+        this.player.add(smile);
+
+        const eyeL = new THREE.Mesh(
+            new THREE.BoxGeometry(0.25, 0.35, 0.05),
+            new THREE.MeshBasicMaterial({ color: 0x000000 })
+        );
+        eyeL.position.set(-0.5, 6.7, 1.12);
+        this.player.add(eyeL);
+
+        const eyeR = eyeL.clone();
+        eyeR.position.x = 0.5;
+        this.player.add(eyeR);
+
+        // Torso
+        const torso = new THREE.Mesh(
+            new THREE.BoxGeometry(3.5, 3, 2),
+            new THREE.MeshStandardMaterial({ color: shirt })
+        );
+        torso.position.y = 3.9;
+        torso.castShadow = true;
+        this.player.add(torso);
+
+        // Arms
+        const armGeo = new THREE.BoxGeometry(1.2, 3, 1.2);
+        const armMat = new THREE.MeshStandardMaterial({ color: shirt });
+
+        const armL = new THREE.Mesh(armGeo, armMat);
+        armL.position.set(-2.35, 3.9, 0);
+        armL.castShadow = true;
+        armL.userData.isArm = 'left';
+        this.player.add(armL);
+
+        const armR = armL.clone();
+        armR.material = armMat;
+        armR.position.x = 2.35;
+        armR.userData.isArm = 'right';
+        this.player.add(armR);
+
+        // Legs
+        const legGeo = new THREE.BoxGeometry(1.4, 2.8, 1.4);
+        const legMat = new THREE.MeshStandardMaterial({ color: pants });
+
+        const legL = new THREE.Mesh(legGeo, legMat);
+        legL.position.set(-0.75, 1.4, 0);
+        legL.castShadow = true;
+        legL.userData.isLeg = 'left';
+        this.player.add(legL);
+
+        const legR = legL.clone();
+        legR.material = legMat;
+        legR.position.x = 0.75;
+        legR.userData.isLeg = 'right';
+        this.player.add(legR);
+
+        this.scene.add(this.player);
+
+        // === Username tag (always visible above head) ===
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'username-3d';
+        nameDiv.textContent = 'Player_Clasic';
+        this.nameLabel = new CSS2DObject(nameDiv);
+        this.nameLabel.position.set(0, 8.5, 0);
+        this.player.add(this.nameLabel);
+
+        // === Chat bubble (above username) ===
+        const chatDiv = document.createElement('div');
+        chatDiv.className = 'chat-bubble-3d';
+        chatDiv.style.display = 'none';
+        this.chatLabel = new CSS2DObject(chatDiv);
+        this.chatLabel.position.set(0, 11, 0);
+        this.player.add(this.chatLabel);
+    }
+
+    showChatBubble(text) {
+        this.chatLabel.element.textContent = text;
+        this.chatLabel.element.style.display = 'block';
+        clearTimeout(this.chatTimeout);
+        this.chatTimeout = setTimeout(() => {
+            this.chatLabel.element.style.display = 'none';
+        }, 4000);
+    }
+
+    setPlayerName(name) {
+        if (this.nameLabel) this.nameLabel.element.textContent = name;
+    }
+
+    setupControls() {
+        window.addEventListener('keydown', (e) => {
+            this.keys[e.code] = true;
+            if (e.code === 'Space') e.preventDefault();
+        });
+        window.addEventListener('keyup', (e) => this.keys[e.code] = false);
+
+        // Mouse-look con Pointer Lock — click para entrar
+        const canvas = this.renderer.domElement;
+        canvas.addEventListener('click', () => {
+            if (document.pointerLockElement !== canvas) canvas.requestPointerLock();
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (document.pointerLockElement !== canvas) return;
+            this.cameraYaw -= e.movementX * 0.005;
+            this.cameraPitch -= e.movementY * 0.003;
+            this.cameraPitch = Math.max(0.15, Math.min(1.4, this.cameraPitch));
+        });
+
+        // Cuando suelta el lock, no mover al jugador
+        document.addEventListener('pointerlockchange', () => {
+            if (document.pointerLockElement !== canvas) {
+                // opcional: no hacer nada
+            }
+        });
+    }
+
+    isChatFocused() {
+        return document.activeElement === document.getElementById('chat-input');
+    }
+
+    updatePlayer(dt) {
+        if (this.isChatFocused()) {
+            // reducir fase de caminata si está escribiendo
+            this.walkPhase *= 0.85;
+            this.animateLimbs();
+            return;
+        }
+
+        const move = new THREE.Vector3();
+        if (this.keys['KeyW'] || this.keys['ArrowUp']) move.z -= 1;
+        if (this.keys['KeyS'] || this.keys['ArrowDown']) move.z += 1;
+        if (this.keys['KeyA'] || this.keys['ArrowLeft']) move.x -= 1;
+        if (this.keys['KeyD'] || this.keys['ArrowRight']) move.x += 1;
+
+        const isMoving = move.lengthSq() > 0;
+        if (isMoving) {
+            move.normalize();
+            // Rotar el vector de movimiento por el yaw de la cámara (estilo Roblox)
+            const sin = Math.sin(this.cameraYaw);
+            const cos = Math.cos(this.cameraYaw);
+            const mx = move.x * cos + move.z * sin;
+            const mz = -move.x * sin + move.z * cos;
+            move.x = mx;
+            move.z = mz;
+            move.multiplyScalar(this.moveSpeed * dt);
+
+            this.player.position.x = Math.max(-48, Math.min(48, this.player.position.x + move.x));
+            this.player.position.z = Math.max(-48, Math.min(48, this.player.position.z + move.z));
+
+            // Cara al sentido de la marcha
+            const targetYaw = Math.atan2(move.x, move.z);
+            let cur = this.player.rotation.y;
+            let diff = targetYaw - cur;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            this.player.rotation.y = cur + diff * Math.min(1, dt * 12);
+
+            this.walkPhase += dt * 9;
+        } else {
+            this.walkPhase *= 0.82;
+        }
+
+        // Salto
+        if (this.keys['Space'] && this.isGrounded) {
+            this.jumpVel = 11;
+            this.isGrounded = false;
+        }
+        if (!this.isGrounded) {
+            this.jumpVel += this.gravity * dt;
+            this.player.position.y += this.jumpVel * dt;
+            if (this.player.position.y <= 0) {
+                this.player.position.y = 0;
+                this.jumpVel = 0;
+                this.isGrounded = true;
+            }
+        }
+
+        this.animateLimbs();
+    }
+
+    animateLimbs() {
+        const swing = Math.sin(this.walkPhase);
+        this.player.children.forEach(c => {
+            if (c.userData.isLeg === 'left') c.position.z = swing * 1.5;
+            else if (c.userData.isLeg === 'right') c.position.z = -swing * 1.5;
+            if (c.userData.isArm === 'left') c.rotation.x = -swing * 0.7;
+            else if (c.userData.isArm === 'right') c.rotation.x = swing * 0.7;
+        });
+    }
+
+    updateCamera() {
+        const target = this.player.position.clone().add(new THREE.Vector3(0, 4, 0));
+        const cp = Math.cos(this.cameraPitch);
+        const sp = Math.sin(this.cameraPitch);
+        const cy = Math.cos(this.cameraYaw);
+        const sy = Math.sin(this.cameraYaw);
+        const offset = new THREE.Vector3(
+            sy * cp * this.cameraDistance,
+            sp * this.cameraDistance,
+            cy * cp * this.cameraDistance
+        );
+        const desired = target.clone().add(offset);
+        this.camera.position.lerp(desired, 0.18);
+        this.camera.lookAt(target);
+    }
+
+    animate() {
+        requestAnimationFrame(() => this.animate());
+        const now = performance.now();
+        let dt = (now - this.lastTime) / 1000;
+        this.lastTime = now;
+        dt = Math.min(dt, 0.05); // cap por si hay un frame largo
+
+        this.updatePlayer(dt);
+        this.updateCamera();
+
+        // Mini animación del bloque blanco (decorativo)
+        if (this.structures) {
+            const central = this.structures.find(s => s.material.color.getHex() === 0xffffff);
+            if (central) central.rotation.y += dt * 0.3;
+        }
 
         this.renderer.render(this.scene, this.camera);
-        this.labelRenderer.render(this.scene, this.camera); // Renderizar las etiquetas HTML 3D
+        this.labelRenderer.render(this.scene, this.camera);
     }
 }
 
