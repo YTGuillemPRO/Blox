@@ -18,9 +18,7 @@
             --rb-robux: #4CD964;
             --rb-red: #D63D3D;
         }
-
         * { box-sizing: border-box; }
-
         body {
             margin: 0;
             overflow: hidden;
@@ -38,7 +36,7 @@
         }
         canvas { display: block; }
 
-        /* === TOP BAR (launcher) === */
+        /* === TOP BAR === */
         .rb-topbar {
             position: fixed;
             top: 0; left: 0; right: 0;
@@ -53,7 +51,6 @@
             gap: 10px;
             z-index: 200;
         }
-
         .rb-hamburger {
             width: 40px; height: 40px;
             background: transparent;
@@ -77,7 +74,6 @@
         .rb-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
         .rb-hamburger.open span:nth-child(2) { opacity: 0; }
         .rb-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
         .rb-logo {
             font-size: 22px;
             font-weight: 800;
@@ -85,10 +81,8 @@
             cursor: pointer;
             padding: 4px 8px;
             border-radius: 6px;
-            transition: background 0.15s;
         }
         .rb-logo:hover { background: rgba(255,255,255,0.08); }
-
         .rb-search {
             flex-grow: 1;
             max-width: 560px;
@@ -101,7 +95,6 @@
             gap: 10px;
             color: #666;
         }
-        .rb-search svg { flex-shrink: 0; }
         .rb-search input {
             flex-grow: 1;
             border: none;
@@ -110,14 +103,12 @@
             font: 500 15px 'Source Sans Pro';
             color: #333;
         }
-
         .rb-topbar-right {
             display: flex;
             align-items: center;
             gap: 4px;
             margin-left: auto;
         }
-
         .rb-robux {
             background: rgba(0,0,0,0.4);
             border-radius: 18px;
@@ -129,11 +120,9 @@
             gap: 6px;
             cursor: pointer;
             border: 1px solid rgba(255,255,255,0.1);
-            transition: background 0.15s;
         }
         .rb-robux:hover { background: rgba(0,0,0,0.6); }
         .rb-robux .r$ { color: var(--rb-robux); font-weight: 800; }
-
         .rb-icon-btn {
             width: 40px; height: 40px;
             border-radius: 50%;
@@ -142,11 +131,7 @@
             color: white;
             font-size: 18px;
             cursor: pointer;
-            transition: background 0.15s;
             position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         .rb-icon-btn:hover { background: rgba(255,255,255,0.08); }
         .rb-icon-btn .badge {
@@ -163,7 +148,6 @@
             justify-content: center;
             border: 2px solid var(--rb-bg-darker);
         }
-
         .rb-profile {
             width: 38px; height: 38px;
             border-radius: 50%;
@@ -193,9 +177,9 @@
             z-index: 150;
             padding: 16px 8px;
             border-right: 1px solid rgba(0,0,0,0.6);
+            overflow-y: auto;
         }
         .rb-sidebar.open { transform: translateX(0); }
-
         .sb-title {
             text-transform: uppercase;
             font-size: 11px;
@@ -204,7 +188,6 @@
             padding: 0 14px 8px;
             margin-top: 4px;
         }
-
         .sb-item {
             display: flex;
             align-items: center;
@@ -230,8 +213,6 @@
             pointer-events: none;
             z-index: 100;
         }
-
-        /* Menu button (top-left) */
         .rb-menu-btn {
             position: absolute;
             top: 14px;
@@ -252,7 +233,6 @@
         }
         .rb-menu-btn:hover { background: rgba(40, 40, 40, 0.95); }
 
-        /* Game menu popover */
         .game-menu {
             position: absolute;
             top: 56px;
@@ -288,7 +268,6 @@
         .gm-item .ic { width: 18px; text-align: center; }
         .gm-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 8px; }
 
-        /* Game title (top-center) */
         .game-title {
             position: absolute;
             top: 16px;
@@ -319,7 +298,6 @@
             background: #4cd964;
         }
 
-        /* Players panel (top-right) */
         .players-panel {
             position: absolute;
             top: 14px;
@@ -349,7 +327,6 @@
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 12px;
-            font-weight: 700;
         }
         .players-toggle:hover { background: rgba(40, 40, 40, 0.95); }
         .players-list {
@@ -388,13 +365,8 @@
             border: 2px solid var(--rb-blue-light);
         }
         .player-item .name { flex-grow: 1; }
-        .player-item .money {
-            color: var(--rb-robux);
-            font-weight: 700;
-            font-size: 12px;
-        }
+        .player-item .money { color: var(--rb-robux); font-weight: 700; font-size: 12px; }
 
-        /* Chat (bottom-left) */
         .chat-container {
             position: absolute;
             bottom: 14px;
@@ -473,7 +445,6 @@
         }
         .chat-input:focus { background: white; }
 
-        /* Health (bottom-right) */
         .health-container {
             position: absolute;
             bottom: 14px;
@@ -497,8 +468,7 @@
         .health-bar {
             height: 100%;
             background: linear-gradient(to bottom, #00e08a 0%, #00b06f 60%, #008c58 100%);
-            transition: width 0.25s ease-out;
-            border-radius: 8px 0 0 8px;
+            transition: width 0.25s ease-out, background 0.2s;
         }
         .health-label {
             position: absolute;
@@ -522,10 +492,9 @@
         }
         .respawn-btn:hover { background: rgba(40, 40, 40, 0.95); }
 
-        /* Backpack (above chat) */
         .backpack-btn {
             position: absolute;
-            bottom: 270px; /* above chat when open */
+            bottom: 270px;
             left: 14px;
             width: 54px;
             height: 54px;
@@ -539,7 +508,6 @@
             padding: 5px;
             cursor: pointer;
             pointer-events: auto;
-            transition: background 0.15s;
         }
         .backpack-btn:hover { background: rgba(40, 40, 40, 0.95); }
         .backpack-btn .slot {
@@ -548,10 +516,8 @@
         }
         .backpack-btn .slot.filled {
             background: linear-gradient(135deg, #4cd964, #00b06f);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
         }
 
-        /* Help hint (bottom-center, subtle) */
         .help-hint {
             position: absolute;
             bottom: 14px;
@@ -576,6 +542,205 @@
             padding: 1px 5px;
             font-family: monospace;
             font-size: 11px;
+        }
+
+        /* === DISCOVER OVERLAY === */
+        .discover-overlay {
+            position: fixed;
+            top: 56px;
+            left: 0; right: 0; bottom: 0;
+            background: #191919;
+            z-index: 300;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            overflow-y: auto;
+            pointer-events: auto;
+        }
+        .discover-overlay.open { transform: translateY(0); }
+        .discover-overlay::-webkit-scrollbar { width: 8px; }
+        .discover-overlay::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+        .discover-header {
+            position: sticky;
+            top: 0;
+            background: rgba(25, 25, 25, 0.97);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(0,0,0,0.6);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 10;
+        }
+        .discover-back {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 9px 16px;
+            border-radius: 8px;
+            font: 600 14px 'Source Sans Pro';
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .discover-back:hover { background: rgba(255,255,255,0.18); }
+        .discover-header h2 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .discover-spacer { flex-grow: 1; }
+        .discover-search {
+            background: rgba(255,255,255,0.95);
+            border: none;
+            color: #333;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font: 500 14px 'Source Sans Pro';
+            width: 280px;
+            outline: none;
+        }
+        .discover-content {
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .featured-card {
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 28px;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+        .featured-card:hover { transform: translateY(-2px); }
+        .featured-thumb {
+            width: 100%;
+            height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 36px;
+            position: relative;
+        }
+        .featured-info {
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 24px 32px;
+            border-radius: 14px;
+            max-width: 480px;
+        }
+        .featured-info h1 {
+            margin: 0 0 6px;
+            font-size: 36px;
+            font-weight: 800;
+        }
+        .featured-info p {
+            margin: 0 0 16px;
+            font-size: 14px;
+            opacity: 0.85;
+        }
+        .featured-play {
+            background: var(--rb-robux);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font: 800 16px 'Source Sans Pro';
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(76,217,100,0.4);
+        }
+        .featured-play:hover { filter: brightness(1.1); }
+        .featured-emoji {
+            position: absolute;
+            right: 36px;
+            bottom: 24px;
+            font-size: 140px;
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));
+            transform: rotate(-8deg);
+        }
+
+        .discover-section { margin-bottom: 28px; }
+        .disc-title {
+            margin: 0 0 14px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .disc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .game-card {
+            background: rgba(40, 40, 40, 0.85);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .game-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .game-card.soon { opacity: 0.75; }
+        .game-thumb {
+            width: 100%;
+            height: 130px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .game-emoji {
+            font-size: 64px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        .soon-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .play-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: var(--rb-robux);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .game-info { padding: 12px 14px; }
+        .game-title-2 {
+            font: 700 15px 'Source Sans Pro';
+            color: white;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .game-creator {
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #ccc;
         }
 
         /* === LOADING === */
@@ -672,11 +837,11 @@
         </button>
         <div class="rb-logo">blox</div>
         <div class="rb-search">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             <input type="text" placeholder="Buscar juegos, gente, artículos..." />
         </div>
         <div class="rb-topbar-right">
-            <div class="rb-robux" title="Tu saldo de Robux">
+            <div class="rb-robux" title="Tu saldo">
                 <span id="money-amount">1,000</span>
                 <span class="r$">R$</span>
             </div>
@@ -721,7 +886,7 @@
         </div>
 
         <div class="game-title">
-            <span>Crossroads</span>
+            <span id="game-title-text">Crossroads</span>
             <span class="ping">48 ms</span>
         </div>
 
@@ -773,6 +938,19 @@
             <kbd>Espacio</kbd> saltar &nbsp;·&nbsp;
             <kbd>Enter</kbd> chat &nbsp;·&nbsp;
             <kbd>ESC</kbd> menú
+        </div>
+    </div>
+
+    <!-- DISCOVER OVERLAY -->
+    <div class="discover-overlay" id="discover-overlay">
+        <div class="discover-header">
+            <button class="discover-back" id="discover-back">← Volver al juego</button>
+            <h2>Descubrir</h2>
+            <div class="discover-spacer"></div>
+            <input type="text" class="discover-search" id="discover-search" placeholder="🔍 Buscar juegos..." />
+        </div>
+        <div class="discover-content" id="discover-content">
+            <!-- Cards built by JS -->
         </div>
     </div>
 
