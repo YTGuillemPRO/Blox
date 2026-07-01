@@ -350,12 +350,15 @@ class GameHandler {
     /* ==========================================================
        GAME SYSTEM
        ========================================================== */
-    registerBuilders() {
-        this.builders.crossroads = () => this.buildCrossroads();
-        this.builders.obby = () => this.buildObby();
-        this.builders.tower = () => this.buildTower();
-        this.builders.soccer = () => this.buildSoccer();
-    }
+registerBuilders() {
+  this.builders.crossroads = () => this.buildCrossroads();
+  this.builders.obby = () => this.buildObby();
+  this.builders.tower = () => this.buildTower();
+  this.builders.soccer = () => this.buildSoccer();
+  
+  // Sell Lemons
+  this.builders['sell-lemons'] = () => this.buildSellLemons();
+}
 
     loadGame(name) {
         this.cleanups.forEach(fn => { try { fn(); } catch (e) {} });
