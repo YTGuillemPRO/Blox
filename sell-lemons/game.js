@@ -279,4 +279,118 @@ class SellLemonsGame {
     div.style.cssText = `
       color: ${color};
       font: 800 24px 'Source Sans Pro';
-      text-shadow: 0 0 8px rgba(0,0,0,0.9), 0 
+      text-shadow: 0 0 8px rgba(0,0,0,0.9), 0 2px 0 rgba(0,0,0,0.5);
+      pointer-events: none;
+      white-space: nowrap;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 200;
+    `;
+    
+    document.querySelector('#game-view').appendChild(div);
+    
+    let opacity = 1;
+    let yPos = 0;
+    
+    const animate = () => {
+      opacity -= 0.02;
+      yPos += 1;
+      div.style.opacity = opacity;
+      div.style.transform = `translate(-50%, ${-50 - yPos}px)`;
+      
+      if (opacity > 0) {
+        requestAnimationFrame(animate);
+      } else {
+        div.remove();
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }
+
+  createSaleParticles() {
+    const count = 8;
+    const colors = [0xFFD700, 0xFFA500, 0xFFFF00];
+    
+    for (let i = 0; i < count; i++) {
+      const particle = new THREE.Mesh(
+        new THREE.BoxGeometry(0.2, 0.2, 0.2),
+        new THREE.MeshBasicMaterial({ 
+          color: colors[Math.floor(Math.random() * colors.length)],
+          transparent: true,
+          opacity: 1
+        })
+      );
+      
+      const pos = this.lemonStand.position.clone();
+      pos.y += 1;
+      pos.x += (Math.random() - 0.5) * 4;
+      pos.z += (Math.random() - 0.5) * 2;
+      
+      particle.position.copy(pos);
+      particle.userData = {
+        velocity: new THREE.Vector3(
+          (Math.random() - 0.5) * 5,
+          Math.random() * 5 + 2,
+          (Math.random() - 0.5) * 5
+        ),
+        life: 1.0
+      };
+      
+      this.handler.scene.add(particle);
+      this.particles.push(particle);
+    }
+  }
+
+  updateParticles(dt) {
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.userData.life -= dt;
+      
+      if (p.userData.life <= 0) {
+        this.handler.scene.remove(p);
+        this.particles.splice(i, 1);
+        continue;
+      }
+      
+      p.userData.velocity.y -= 15 * dt; // gravedad
+      p.position.add(p.userData.velocity.clone().multiplyScalar(dt));
+      p.material.opacity = p.userData.life;
+      p.rotation.x += dt * 2;
+      p.rotation.y += dt * 3;
+    }
+  }
+
+  formatMoney(n) {
+    return Number(n).toLocaleString('en-US');
+  }
+
+  updateUI() {
+    // Actualizar display de dinero en la barra superior
+    const moneyDisplay = document.getElementById('money-amount');
+    if (moneyDisplay) {
+      moneyDisplay.textContent = this.formatMoney(this.money);
+    }
+    
+    // Re-renderizar upgrades
+    this.renderUpgrades();
+  }
+
+  cleanup() {
+    if (this.autoSellInterval) {
+      clearInterval(this.autoSellInterval);
+    }
+    
+    const panel = document.getElementById('sell-lemons-upgrades');
+    if (panel) {
+      panel.remove();
+    }
+    
+    this.particles.forEach(p => this.handler.scene.remove(p));
+    this.particles = [];
+  }
+}
+
+window.SellLemonsGame = SellLemonsGame;
