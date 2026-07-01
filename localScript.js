@@ -6,7 +6,6 @@ class LocalGameScript {
         this.playerName = 'Player_Clasic';
         this.currentGame = 'crossroads';
 
-        // Catálogo de juegos (la fuente de verdad — alimenta Discover y el loader)
         this.games = [
             { id: 'crossroads', title: 'Crossroads', emoji: '🏙️', gradient: 'linear-gradient(135deg, #667eea, #764ba2)', creator: 'Roblox', players: '12,540 jugando', rating: 92, playable: true },
             { id: 'obby',       title: 'Mega Obby', emoji: '🟩', gradient: 'linear-gradient(135deg, #f093fb, #f5576c)', creator: 'Builderman', players: '34,210 jugando', rating: 78, playable: true },
@@ -22,11 +21,7 @@ class LocalGameScript {
             { id: 'pool',       title: 'Fiesta Piscina', emoji: '🏊', gradient: 'linear-gradient(135deg, #00c6ff, #0072ff)', creator: 'PartyHost', players: '3,290 jugando', rating: 91, playable: false },
         ];
 
-        // === FILTRO DE PROFANIDAD ===
-        // Lista base de tacos comunes en ES + EN. Se aplica con regex de palabras
-        // completas (\b...\b) para no romper "misterio" ni "asunto".
         this.profanityList = [
-            // Español
             'puta', 'puto', 'putas', 'putos', 'putita', 'putito',
             'mierda', 'mierdas', 'cabron', 'cabrones', 'cabrona',
             'coño', 'cojones', 'cojon', 'joder', 'jodido', 'jodida', 'jodete',
@@ -37,13 +32,11 @@ class LocalGameScript {
             'follar', 'follada', 'follado', 'zorra', 'zorras',
             'mamón', 'mamona', 'mamones', 'mames', 'mamey',
             'pollas', 'polla', 'porno',
-            // English
             'fuck', 'fucking', 'fucker', 'shit', 'shitty', 'shits',
             'bitch', 'bitches', 'bitching', 'asshole', 'assholes',
             'dick', 'dicks', 'piss', 'pissed', 'cunt', 'cunts',
             'damn', 'damned', 'dammit', 'crap', 'crappy',
             'bastard', 'bastards', 'motherfucker',
-            // Variantes con sufijos
             'idiota', 'idiotas',
         ];
 
@@ -51,16 +44,14 @@ class LocalGameScript {
         this.initDiscover();
         this.initPanels();
         this.initChat();
+        this.initMinimap();
         this.syncPlayerName();
         this.setupGameEvents();
         this.startGameLoops();
     }
 
-    /* ==========================================================
-       PROFANITY FILTER
-       ========================================================== */
     censorText(text) {
-        if (!text) return text;
+        if (!text) return { text, dirty: false };
         let censored = text;
         let dirty = false;
         for (const word of this.profanityList) {
@@ -80,9 +71,7 @@ class LocalGameScript {
         return d.innerHTML;
     }
 
-    formatMoney(n) {
-        return Number(n).toLocaleString('en-US');
-    }
+    formatMoney(n) { return Number(n).toLocaleString('en-US'); }
 
     initUI() {
         this.moneyDisplay = document.getElementById('money-amount');
@@ -97,20 +86,13 @@ class LocalGameScript {
         const moneyStr = this.formatMoney(this.playerMoney);
         if (this.moneyDisplay) this.moneyDisplay.innerText = moneyStr;
         if (this.lbMoney) this.lbMoney.innerText = `${moneyStr} R$`;
-        if (this.healthFill) {
-            this.healthFill.style.width = `${(this.playerHealth / this.maxHealth) * 100}%`;
-        }
+        if (this.healthFill) this.healthFill.style.width = `${(this.playerHealth / this.maxHealth) * 100}%`;
         if (this.healthLabel) this.healthLabel.innerText = `${this.playerHealth}/${this.maxHealth}`;
-
         if (this.healthFill) {
             const pct = this.playerHealth / this.maxHealth;
-            if (pct < 0.3) {
-                this.healthFill.style.background = 'linear-gradient(to bottom, #ff5e5e 0%, #d63d3d 60%, #a82020 100%)';
-            } else if (pct < 0.6) {
-                this.healthFill.style.background = 'linear-gradient(to bottom, #ffce5e 0%, #f0a000 60%, #c47c00 100%)';
-            } else {
-                this.healthFill.style.background = 'linear-gradient(to bottom, #00e08a 0%, #00b06f 60%, #008c58 100%)';
-            }
+            if (pct < 0.3) this.healthFill.style.background = 'linear-gradient(to bottom, #ff5e5e, #d63d3d, #a82020)';
+            else if (pct < 0.6) this.healthFill.style.background = 'linear-gradient(to bottom, #ffce5e, #f0a000, #c47c00)';
+            else this.healthFill.style.background = 'linear-gradient(to bottom, #00e08a, #00b06f, #008c58)';
         }
     }
 
@@ -144,32 +126,22 @@ class LocalGameScript {
 
             <div class="discover-section">
                 <h3 class="disc-title">⭐ Populares ahora</h3>
-                <div class="disc-grid">
-                    ${popular.map(g => this.gameCardHTML(g)).join('')}
-                </div>
+                <div class="disc-grid">${popular.map(g => this.gameCardHTML(g)).join('')}</div>
             </div>
 
             <div class="discover-section">
                 <h3 class="disc-title">🎮 Más juegos</h3>
-                <div class="disc-grid">
-                    ${all.map(g => this.gameCardHTML(g)).join('')}
-                </div>
+                <div class="disc-grid">${all.map(g => this.gameCardHTML(g)).join('')}</div>
             </div>
         `;
 
-        // Click en cada card
         content.querySelectorAll('[data-game]').forEach(card => {
-            card.addEventListener('click', () => {
-                const id = card.dataset.game;
-                this.openGame(id);
-            });
+            card.addEventListener('click', () => this.openGame(card.dataset.game));
         });
 
-        // Botón volver
         const back = document.getElementById('discover-back');
         if (back) back.addEventListener('click', () => overlay.classList.remove('open'));
 
-        // Buscar
         const search = document.getElementById('discover-search');
         if (search) {
             search.addEventListener('input', () => {
@@ -178,7 +150,6 @@ class LocalGameScript {
                     const t = (card.dataset.title || '').toLowerCase();
                     card.style.display = !q || t.includes(q) ? '' : 'none';
                 });
-                // Section visibility
                 content.querySelectorAll('.discover-section').forEach(sec => {
                     const has = Array.from(sec.querySelectorAll('.game-card')).some(c => c.style.display !== 'none');
                     sec.style.display = has ? '' : 'none';
@@ -186,7 +157,6 @@ class LocalGameScript {
             });
         }
 
-        // ESC para cerrar
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && overlay.classList.contains('open')) {
                 overlay.classList.remove('open');
@@ -217,13 +187,10 @@ class LocalGameScript {
     openGame(id) {
         const game = this.games.find(g => g.id === id);
         if (!game) return;
-
         if (!game.playable) {
             this.sysMsg(`<b>${this.escapeHTML(game.title)}</b> aún no disponible. Próximamente.`);
             return;
         }
-
-        // Cerrar discover y cargar
         document.getElementById('discover-overlay')?.classList.remove('open');
         if (document.pointerLockElement) document.exitPointerLock();
         this.loadGame(id);
@@ -231,58 +198,137 @@ class LocalGameScript {
 
     loadGame(id) {
         if (!window.GameHandler) return;
-
         window.GameHandler.loadGame(id);
         this.currentGame = id;
         const game = this.games.find(g => g.id === id);
         if (game && this.gameTitle) this.gameTitle.textContent = game.title;
-
-        // Reset salud y burburja
         this.playerHealth = this.maxHealth;
         this.updateUI();
-        if (window.GameHandler.chatLabel) {
-            window.GameHandler.chatLabel.element.style.display = 'none';
-        }
-
+        if (window.GameHandler.chatLabel) window.GameHandler.chatLabel.element.style.display = 'none';
         this.sysMsg(`Cargando <b>${this.escapeHTML(game.title)}</b>... ¡a jugar!`);
     }
 
     /* ==========================================================
-       GAME EVENTS (notificaciones de victoria / caída / gol)
+       GAME EVENTS — confetti, banner, damage flash
        ========================================================== */
     setupGameEvents() {
         window.addEventListener('player-fell', () => {
             this.playerHealth = Math.max(0, this.playerHealth - 15);
             this.updateUI();
+            this.flashDamage();
             this.sysMsg('💀 ¡Caíste al vacío! Volviendo al inicio (-15 HP)');
         });
 
         window.addEventListener('player-won', (e) => {
-            const id = e.detail;
             this.playerMoney += 500;
             this.updateUI();
             const titles = {
                 obby: '🎉 ¡Obby completado! +500 R$',
                 tower: '🏆 ¡Cima de la Torre alcanzada! +500 R$',
             };
-            this.sysMsg(titles[id] || '🎉 ¡Victoria! +500 R$');
-            // Deshabilitar trofeo para no seguir contando
+            this.sysMsg(titles[e.detail] || '🎉 ¡Victoria! +500 R$');
+            this.celebrate();
             setTimeout(() => {
-                if (window.GameHandler?.trophyPos) window.GameHandler.trophyPos = null;
+                if (window.GameHandler?.trophyPos !== undefined) window.GameHandler.trophyPos = null;
             }, 500);
         });
 
         window.addEventListener('player-scored', (e) => {
-            const side = e.detail;
             this.playerMoney += 100;
             this.updateUI();
-            const sideStr = side === 'left' ? 'izquierda' : 'derecha';
-            this.sysMsg(`⚽ ¡GOOOOL! Portería ${sideStr}. +100 R$`);
+            const side = e.detail === 'left' ? 'izquierda' : 'derecha';
+            this.sysMsg(`⚽ ¡GOOOOL! Portería ${side}. +100 R$`);
+            this.celebrate(false);
         });
     }
 
+    celebrate(fullVictory = true) {
+        const pos = window.GameHandler?.player?.position;
+        if (!pos) return;
+
+        // Confetti
+        const colors = fullVictory
+            ? [0xff0044, 0x44ff66, 0x4488ff, 0xffff44, 0xff44ff, 0x44ffff]
+            : [0x4cd964, 0x44ffff, 0xffff44, 0xffffff];
+
+        if (window.GameHandler.emitParticles) {
+            const p = pos.clone();
+            p.y += 4;
+            for (const c of colors) {
+                window.GameHandler.emitParticles(p, {
+                    count: fullVictory ? 22 : 18,
+                    color: c,
+                    size: 0.55,
+                    speed: 12,
+                    lifetime: fullVictory ? 2.7 : 2,
+                    gravity: 13,
+                    upwardBias: 0.7,
+                    spread: 0.9
+                });
+            }
+        }
+
+        // Floating text
+        if (window.GameHandler.showFloatingText) {
+            const text = fullVictory ? '+500 R$' : '¡GOOOL! +100 R$';
+            const color = fullVictory ? '#4cd964' : '#44ffaa';
+            window.GameHandler.showFloatingText(text, color, pos);
+        }
+
+        if (fullVictory) this.showVictoryBanner();
+    }
+
+    showVictoryBanner() {
+        const banner = document.createElement('div');
+        banner.innerHTML = '🏆 ¡VICTORIA!';
+        banner.style.cssText = `
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            background: linear-gradient(135deg, #ffd700, #ff8800);
+            color: white;
+            font: 800 60px 'Source Sans Pro';
+            text-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 0 30px rgba(255,200,0,0.6);
+            padding: 20px 60px;
+            border-radius: 18px;
+            border: 4px solid white;
+            box-shadow: 0 12px 40px rgba(255,140,0,0.5), inset 0 2px 0 rgba(255,255,255,0.4);
+            pointer-events: none;
+            z-index: 250;
+            letter-spacing: 6px;
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        `;
+        document.body.appendChild(banner);
+        requestAnimationFrame(() => {
+            banner.style.opacity = '1';
+            banner.style.transform = 'translate(-50%, -50%) scale(1)';
+        });
+        setTimeout(() => {
+            banner.style.transition = 'all 0.5s ease-in';
+            banner.style.opacity = '0';
+            banner.style.transform = 'translate(-50%, -60%) scale(0.7)';
+        }, 1700);
+        setTimeout(() => banner.remove(), 2300);
+    }
+
+    flashDamage() {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed; inset: 0;
+            background: radial-gradient(circle, rgba(255,0,0,0.5), rgba(255,0,0,0.1));
+            pointer-events: none;
+            z-index: 50;
+            opacity: 1;
+            transition: opacity 0.6s ease-out;
+        `;
+        document.body.appendChild(overlay);
+        setTimeout(() => overlay.style.opacity = '0', 80);
+        setTimeout(() => overlay.remove(), 700);
+    }
+
     /* ==========================================================
-       PANELS — sidebar, players, game menu
+       PANELS
        ========================================================== */
     initPanels() {
         const burger = document.getElementById('rb-hamburger');
@@ -296,15 +342,13 @@ class LocalGameScript {
             });
         }
 
-        // Sidebar items
         document.querySelectorAll('.sb-item').forEach(item => {
-            item.addEventListener('click', (e) => {
+            item.addEventListener('click', () => {
                 const name = item.textContent.trim();
                 if (sb) sb.classList.remove('open');
                 if (burger) burger.classList.remove('open');
                 if (name.includes('Descubrir')) {
                     document.getElementById('discover-overlay')?.classList.add('open');
-                    if (document.pointerLockElement) document.exitPointerLock();
                     return;
                 }
                 this.sysMsg(`Abriendo <b>${this.escapeHTML(name)}</b>... (no implementado)`);
@@ -331,7 +375,7 @@ class LocalGameScript {
                 const hint = document.getElementById('help-hint');
                 if (gameMenu.classList.contains('open') && hint) {
                     hint.classList.add('show');
-                    setTimeout(() => hint.classList.remove('show'), 3000);
+                    setTimeout(() => hint.classList.remove('show'), 3500);
                 }
             });
         }
@@ -346,9 +390,7 @@ class LocalGameScript {
                         gameMenu.classList.remove('open');
                     }
                 } else if (act === 'settings') this.sysMsg('Ajustes del juego no disponibles.');
-                else if (act === 'help') {
-                    this.sysMsg('WASD moverse · Espacio saltar · Click rotar cámara · Enter chat · ESC menú');
-                }
+                else if (act === 'help') this.sysMsg('WASD moverse · Espacio saltar · Click derecho + arrastrar rotar cámara · Enter chat · ESC menú');
             });
         });
 
@@ -365,10 +407,13 @@ class LocalGameScript {
         const bp = document.getElementById('backpack-btn');
         if (bp) bp.addEventListener('click', () => this.sysMsg('Mochila: 2/9 usados. (decorativo)'));
 
-        // ESC → cerrar paneles en cascada
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                // discover (manejado en initDiscover)
+                if (document.getElementById('discover-overlay')?.classList.contains('open')) {
+                    document.getElementById('discover-overlay').classList.remove('open');
+                    e.preventDefault();
+                    return;
+                }
                 if (gameMenu?.classList.contains('open')) {
                     gameMenu.classList.remove('open');
                     e.preventDefault();
@@ -385,9 +430,7 @@ class LocalGameScript {
                     e.preventDefault();
                     return;
                 }
-                if (gameMenu && !this.isChatFocused()) {
-                    gameMenu.classList.toggle('open');
-                }
+                if (gameMenu && !this.isChatFocused()) gameMenu.classList.toggle('open');
             } else if (e.key === 'Enter' && !this.isChatFocused() && !this.isUiOpen()) {
                 const cc = document.getElementById('chat-container');
                 if (cc && !cc.classList.contains('open')) {
@@ -436,7 +479,7 @@ class LocalGameScript {
     }
 
     /* ==========================================================
-       CHAT — con censura
+       CHAT (con censura)
        ========================================================== */
     initChat() {
         const chatContainer = document.getElementById('chat-container');
@@ -470,11 +513,7 @@ class LocalGameScript {
                         chatInput.blur();
                         return;
                     }
-
-                    // Censurar
                     const { text: cleanText, dirty } = this.censorText(rawText);
-
-                    // Emote
                     if (rawText.startsWith('/e ')) {
                         const emote = this.censorText(rawText.slice(3).trim()).text;
                         if (window.GameHandler?.showChatBubble) {
@@ -482,8 +521,6 @@ class LocalGameScript {
                         }
                         return;
                     }
-
-                    // Mensaje normal
                     const censoredBadge = dirty
                         ? ' <span style="color:#ff9966;font-size:11px;">(censurado)</span>'
                         : '';
@@ -492,11 +529,9 @@ class LocalGameScript {
                     chatMessages.appendChild(msg);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-                    // Globo 3D censurado
                     if (window.GameHandler?.showChatBubble) {
                         window.GameHandler.showChatBubble(cleanText);
                     }
-
                     setTimeout(() => chatInput.focus(), 50);
                 } else if (e.key === 'Escape') {
                     chatInput.value = '';
@@ -504,10 +539,103 @@ class LocalGameScript {
                     chatInput.blur();
                 }
             });
-
             chatInput.addEventListener('focus', () => {
                 if (document.pointerLockElement) document.exitPointerLock();
             });
+        }
+    }
+
+    /* ==========================================================
+       MINIMAPA — dibuja el radar circular
+       ========================================================== */
+    initMinimap() {
+        const canvas = document.getElementById('minimap');
+        if (!canvas) return;
+        this.minimapCtx = canvas.getContext('2d');
+        this.minimapCanvas = canvas;
+        this.coordsDisplay = document.getElementById('minimap-coords');
+        this.drawMinimap();
+        setInterval(() => this.drawMinimap(), 80);
+    }
+
+    drawMinimap() {
+        const ctx = this.minimapCtx;
+        const canvas = this.minimapCanvas;
+        const gh = window.GameHandler;
+        if (!ctx || !canvas || !gh || !gh.player) return;
+        const w = canvas.width;
+        const h = canvas.height;
+        const cx = w / 2, cy = h / 2;
+        ctx.clearRect(0, 0, w, h);
+
+        // Fondo según juego
+        const game = gh.currentGame;
+        if (game === 'soccer') ctx.fillStyle = '#2e8b57';
+        else if (game === 'tower') ctx.fillStyle = '#1a3320';
+        else ctx.fillStyle = '#1e3818';
+        ctx.fillRect(0, 0, w, h);
+
+        // Grid sutil
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < w; i += 28) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke();
+        }
+        for (let i = 0; i < h; i += 28) {
+            ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke();
+        }
+
+        // Objetos estáticos
+        const scale = 1.6;
+        const px = gh.player.position.x;
+        const pz = gh.player.position.z;
+
+        if (gh.staticObjects) {
+            for (const obj of gh.staticObjects) {
+                const pos = obj.mesh.position;
+                const dx = (pos.x - px) * scale;
+                const dz = (pos.z - pz) * scale;
+                const sx = cx + dx;
+                const sy = cy + dz;
+                const dist = Math.hypot(sx - cx, sy - cy);
+                if (dist > w / 2 - 4) continue;
+                ctx.fillStyle = obj.color || '#888';
+                const sz = (obj.size || 4) * scale;
+                if (sz < 2) {
+                    ctx.fillRect(sx - 1, sy - 1, 2, 2);
+                } else if (sz < 5) {
+                    ctx.beginPath(); ctx.arc(sx, sy, sz / 2, 0, Math.PI * 2); ctx.fill();
+                } else {
+                    ctx.fillRect(sx - sz / 2, sy - sz / 2, sz, sz);
+                }
+            }
+        }
+
+        // Cono de visión (cámara)
+        ctx.fillStyle = 'rgba(255,255,255,0.18)';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, w / 2 - 4, gh.cameraYaw - 0.5, gh.cameraYaw + 0.5);
+        ctx.closePath();
+        ctx.fill();
+
+        // Player
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
+
+        // Triángulo de dirección
+        const yaw = gh.player.rotation.y;
+        ctx.fillStyle = '#ff8800';
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.sin(yaw) * 14, cy + Math.cos(yaw) * 14);
+        ctx.lineTo(cx - Math.sin(yaw + 2.6) * 6, cy - Math.cos(yaw + 2.6) * 6);
+        ctx.lineTo(cx - Math.sin(yaw - 2.6) * 6, cy - Math.cos(yaw - 2.6) * 6);
+        ctx.closePath(); ctx.fill();
+
+        // Coordenadas en pantalla
+        if (this.coordsDisplay) {
+            this.coordsDisplay.textContent = `${Math.round(px)}, ${Math.round(pz)}`;
         }
     }
 
@@ -524,6 +652,14 @@ class LocalGameScript {
         setInterval(() => {
             this.playerMoney += 10;
             this.updateUI();
+            if (window.GameHandler?.showFloatingText) {
+                const p = window.GameHandler.player.position;
+                const pos = new (window.THREE || { Vector3: function () { this.x=0;this.y=0;this.z=0;this.copy=()=>this;this.clone=()=>this; } })().constructor?.() || { x: p.x, y: p.y, z: p.z };
+                pos.x = p.x + (Math.random() - 0.5) * 2;
+                pos.y = 2.5 + Math.random();
+                pos.z = p.z + (Math.random() - 0.5) * 2;
+                window.GameHandler.showFloatingText('+10', '#88ddaa', pos);
+            }
         }, 3000);
     }
 }
