@@ -124,31 +124,50 @@
             transition: width 0.2s;
         }
 
-        /* --- Hotbar / Herramientas (Inferior Centro) --- */
-        .hotbar {
+        /* --- Panel de Juegos (Inferior Centro) --- */
+        .games-panel {
             position: absolute;
             bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
+            background-color: rgba(50, 50, 50, 0.9);
+            border: 2px solid #000;
+            padding: 10px;
             display: flex;
-            gap: 5px;
-            background-color: rgba(255,255,255,0.2);
-            padding: 5px;
-            border-radius: 3px;
+            gap: 10px;
+            pointer-events: auto;
         }
 
-        .slot {
-            width: 50px;
-            height: 50px;
-            background-color: rgba(50, 50, 50, 0.8);
+        .game-btn {
+            background-color: #fff;
             border: 2px solid #000;
-            border-radius: 2px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
+            padding: 10px 15px;
+            font-family: 'Arial', sans-serif;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #000;
+            text-align: center;
+            width: 80px;
+        }
+
+        .game-btn:hover {
+            background-color: #ddd;
+        }
+
+        /* --- Globo de chat 3D --- */
+        .chat-bubble-3d {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #000;
+            padding: 4px 8px;
+            border-radius: 5px;
+            color: #000;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+            transform: translateY(-20px); /* Elevarlo sobre la cabeza */
+            pointer-events: none;
         }
 
         /* --- Pantalla de Carga --- */
@@ -170,7 +189,8 @@
     <script type="importmap">
         {
             "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
             }
         }
     </script>
@@ -204,17 +224,15 @@
                     <div><b style="color:#0055FF;">Sistema:</b> Bienvenido a Roblox Classic World!</div>
                 </div>
                 <div class="chat-input-box">
-                    <input type="text" id="chat-input" placeholder="Presiona Enter para chatear...">
+                    <input type="text" id="chat-input" placeholder="Presiona Enter para chatear..." maxlength="50">
                 </div>
             </div>
 
-            <!-- Hotbar -->
-            <div class="hotbar">
-                <div class="slot">1</div>
-                <div class="slot">2</div>
-                <div class="slot">3</div>
-                <div class="slot">4</div>
-                <div class="slot">5</div>
+            <!-- Panel de Juegos -->
+            <div class="games-panel">
+                <button class="game-btn" onclick="alert('Cargando Crossroads...')">Crossroads</button>
+                <button class="game-btn" onclick="alert('Cargando Chaos Canyon...')">Chaos Canyon</button>
+                <button class="game-btn" onclick="alert('Cargando Rocket Arena...')">Rocket Arena</button>
             </div>
 
             <!-- Barra de Vida -->
