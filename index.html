@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classic World - Web Engine</title>
+    <title>Bloxyy - Classic World</title>
     <style>
         :root {
             --bg-glass: rgba(15, 15, 25, 0.65);
@@ -13,226 +13,101 @@
             --success: #2ed573;
         }
 
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #87CEEB;
-        }
-
-        #game-container {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-        }
-
+        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; }
+        #game-container { width: 100vw; height: 100vh; position: relative; }
         canvas { display: block; }
 
-        /* === PANTALLA DE LOGIN/REGISTRO (FIREBASE) === */
+        /* === PANTALLA DE LOGIN (FIREBASE) === */
         #auth-screen {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #1e1e2f 0%, #0f0f1a 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.5s ease;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; transition: opacity 0.5s ease;
         }
-
         .auth-box {
-            background: var(--bg-glass);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border-glass);
-            padding: 40px;
-            border-radius: 16px;
-            width: 350px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            color: white;
+            background: var(--bg-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass); padding: 40px; border-radius: 16px;
+            width: 350px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); color: white;
         }
-
-        .auth-box h2 {
-            margin: 0 0 20px 0;
-            text-align: center;
-            font-weight: 300;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
+        .auth-box h2 { margin: 0 0 20px 0; text-align: center; font-weight: 300; letter-spacing: 1px; text-transform: uppercase; }
         .auth-box input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: white;
-            outline: none;
-            transition: 0.2s;
+            width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; outline: none; transition: 0.2s;
         }
-
-        .auth-box input:focus {
-            border-color: var(--primary);
-            background: rgba(255,255,255,0.1);
-        }
-
+        .auth-box input:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); }
         .auth-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--primary);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-bottom: 10px;
+            width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 8px;
+            color: white; font-weight: bold; cursor: pointer; transition: 0.2s; margin-bottom: 10px;
         }
-
         .auth-btn:hover { background: #008ecc; }
         .auth-btn.secondary { background: rgba(255,255,255,0.1); }
         .auth-btn.secondary:hover { background: rgba(255,255,255,0.2); }
+        .auth-error { color: var(--danger); font-size: 12px; text-align: center; margin-top: 10px; min-height: 15px; }
 
-        /* === HUD DEL JUEGO (MATE/CRISTAL) === */
-        .ui-overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 10;
-        }
-
+        /* === HUD === */
+        .ui-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         .glass-panel {
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--border-glass);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            color: white;
+            background: var(--bg-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glass); border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); color: white;
         }
-
-        /* Leaderboard */
-        .hud-leaderboard {
-            position: absolute;
-            top: 20px; right: 20px;
-            padding: 15px;
-            min-width: 200px;
-        }
-        .hud-leaderboard h3 {
-            margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #aaa;
-            border-bottom: 1px solid var(--border-glass); padding-bottom: 5px;
-        }
-        .lb-row {
-            display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px;
-        }
+        .hud-leaderboard { position: absolute; top: 20px; right: 20px; padding: 15px; min-width: 200px; }
+        .hud-leaderboard h3 { margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #aaa; border-bottom: 1px solid var(--border-glass); padding-bottom: 5px; }
+        .lb-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
         .lb-money { color: var(--success); font-weight: bold; }
-
-        /* Chat */
-        .hud-chat {
-            position: absolute;
-            top: 20px; left: 20px;
-            width: 350px; height: 200px;
-            display: flex; flex-direction: column;
-            overflow: hidden;
-        }
-        .chat-messages {
-            flex-grow: 1; padding: 10px; overflow-y: auto; font-size: 13px;
-            display: flex; flex-direction: column; gap: 4px;
-        }
+        
+        .hud-chat { position: absolute; top: 20px; left: 20px; width: 350px; height: 200px; display: flex; flex-direction: column; overflow: hidden; }
+        .chat-messages { flex-grow: 1; padding: 10px; overflow-y: auto; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
         .chat-messages::-webkit-scrollbar { width: 4px; }
         .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
-        
-        .chat-input-container {
-            border-top: 1px solid var(--border-glass);
-            padding: 8px;
-            pointer-events: auto;
-        }
-        .chat-input-container input {
-            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-            color: white; padding: 8px; border-radius: 6px; outline: none;
-        }
+        .chat-input-container { border-top: 1px solid var(--border-glass); padding: 8px; pointer-events: auto; }
+        .chat-input-container input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 6px; outline: none; }
 
-        /* Salud y Herramientas */
-        .hud-bottom {
-            position: absolute;
-            bottom: 20px; left: 50%;
-            transform: translateX(-50%);
-            display: flex; align-items: center; gap: 20px;
-        }
+        .hud-bottom { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 20px; }
+        .health-bar { width: 200px; height: 12px; background: rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden; }
+        .health-fill { height: 100%; width: 100%; background: var(--danger); transition: width 0.3s, background 0.3s; }
+        .hotbar { display: flex; gap: 8px; padding: 8px; }
+        .hotbar-slot { width: 45px; height: 45px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #888; }
 
-        .health-bar {
-            width: 200px; height: 12px;
-            background: rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden;
-        }
-        .health-fill {
-            height: 100%; width: 100%; background: var(--danger);
-            transition: width 0.3s, background 0.3s;
-        }
-
-        .hotbar {
-            display: flex; gap: 8px; padding: 8px;
-        }
-        .hotbar-slot {
-            width: 45px; height: 45px; background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
-            display: flex; align-items: center; justify-content: center; font-size: 10px; color: #888;
-        }
-
-        /* Globo de Chat 3D */
         .chat-bubble-3d {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(0,0,0,0.1);
-            padding: 6px 12px; border-radius: 12px;
-            color: #000; font-size: 13px; font-weight: 500;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            transform: translateY(-20px);
-            pointer-events: none;
-            opacity: 0; transition: opacity 0.3s;
+            background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(0,0,0,0.1); padding: 6px 12px; border-radius: 12px;
+            color: #000; font-size: 13px; font-weight: 500; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transform: translateY(-20px); pointer-events: none; opacity: 0; transition: opacity 0.3s;
         }
         
-        /* Pantalla de carga */
-        #loading-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; color: white;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 500; font-size: 24px; letter-spacing: 2px;
-        }
+        #loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: white; display: flex; justify-content: center; align-items: center; z-index: 500; font-size: 24px; letter-spacing: 2px; }
     </style>
+    <!-- IMPORTMAP: Añadidos Three.js y Firebase -->
     <script type="importmap">
         {
             "imports": {
                 "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+                "firebase/analytics": "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js"
             }
         }
     </script>
 </head>
 <body>
     <div id="game-container">
-        <!-- Pantalla de Carga 3D -->
         <div id="loading-screen">CARGANDO MOTOR 3D...</div>
 
         <!-- Pantalla de Login -->
         <div id="auth-screen">
             <div class="auth-box">
-                <h2>Classic World</h2>
+                <h2>Bloxyy</h2>
                 <input type="email" id="email-input" placeholder="Correo electrónico">
                 <input type="password" id="pass-input" placeholder="Contraseña">
                 <button class="auth-btn" id="btn-login">Iniciar Sesión</button>
                 <button class="auth-btn secondary" id="btn-register">Crear Cuenta</button>
+                <div class="auth-error" id="auth-error"></div>
             </div>
         </div>
 
         <!-- HUD del Juego -->
         <div class="ui-overlay" id="game-hud" style="display: none;">
-            <!-- Chat -->
             <div class="hud-chat glass-panel">
                 <div class="chat-messages" id="chat-messages">
                     <div style="color:#aaa;">Sistema: Conectado al servidor.</div>
@@ -241,25 +116,17 @@
                     <input type="text" id="chat-input" placeholder="Presiona Enter para chatear..." maxlength="50">
                 </div>
             </div>
-
-            <!-- Leaderboard -->
             <div class="hud-leaderboard glass-panel">
                 <h3>Jugadores</h3>
                 <div class="lb-row"><span>Player_Clasic</span><span class="lb-money" id="money-amount">1000$</span></div>
                 <div class="lb-row"><span>Guest_2008</span><span class="lb-money">50$</span></div>
             </div>
-
-            <!-- Bottom HUD -->
             <div class="hud-bottom">
                 <div class="glass-panel" style="padding: 8px; display: flex; align-items: center;">
                     <div class="health-bar"><div class="health-fill" id="health-fill"></div></div>
                 </div>
                 <div class="hotbar glass-panel">
-                    <div class="hotbar-slot">1</div>
-                    <div class="hotbar-slot">2</div>
-                    <div class="hotbar-slot">3</div>
-                    <div class="hotbar-slot">4</div>
-                    <div class="hotbar-slot">5</div>
+                    <div class="hotbar-slot">1</div><div class="hotbar-slot">2</div><div class="hotbar-slot">3</div><div class="hotbar-slot">4</div><div class="hotbar-slot">5</div>
                 </div>
             </div>
         </div>
