@@ -9,6 +9,7 @@ class LocalGameScript {
         this.initFirebaseAuth();
         this.initUI();
         this.initChat();
+        this.initMobileControls();
         this.startGameLoops();
     }
 
@@ -31,16 +32,13 @@ class LocalGameScript {
         const homeScreen = document.getElementById('home-screen');
         const gameHud = document.getElementById('game-hud');
         const errorDisplay = document.getElementById('auth-error');
-        const welcomeText = document.getElementById('welcome-user');
 
         onAuthStateChanged(this.auth, (user) => {
             if (user) {
-                // Logueado: Ir a Home Screen
                 authScreen.style.display = 'none';
                 gameHud.style.display = 'none';
                 homeScreen.style.display = 'flex';
             } else {
-                // No logueado: Mostrar Login
                 authScreen.style.display = 'flex';
                 homeScreen.style.display = 'none';
                 gameHud.style.display = 'none';
@@ -52,7 +50,7 @@ class LocalGameScript {
             const email = document.getElementById('email-input').value;
             const pass = document.getElementById('pass-input').value;
             signInWithEmailAndPassword(this.auth, email, pass).catch(() => {
-                errorDisplay.innerText = "Error: Correo o contraseña incorrectos.";
+                errorDisplay.innerText = "Error: Credenciales incorrectos.";
             });
         });
 
@@ -67,11 +65,10 @@ class LocalGameScript {
             });
         });
 
-        // Botón JUGAR (Inicio -> Juego 3D)
         document.getElementById('btn-play').addEventListener('click', () => {
             homeScreen.style.display = 'none';
             gameHud.style.display = 'block';
-            window.GameHandler.startGame(); // Iniciar el mundo 3D
+            window.GameHandler.startGame();
         });
     }
 
@@ -111,6 +108,70 @@ class LocalGameScript {
                 } else { chatInput.blur(); }
             }
         });
+    }
+
+    initMobileControls() {
+        const base = document.getElementById('joystick-base');
+        const thumb = document.getElementById('joystick-thumb');
+        const gameContainer = document.getElementById('game-container');
+        
+        const handleStart = (e) => {
+            e.preventDefault();
+            window.GameHandler.joystick.active = true;
+            base.style.opacity = '1';
+            const touch = e.touches ? e.touches[0] : e;
+            const rect = base.getBoundingClientRect();
+            base.style.left = (touch.clientX - 60) + 'px';
+            base.style.bottom = 'auto';
+            base.style.top = (touch.clientY - 60) + 'px';
+            thumb.style.left = '50%';
+            thumb.style.top = '50%';
+        };
+
+        const handleMove = (e) => {
+            if(!window.GameHandler.joystick.active) return;
+            e.preventDefault();
+            const touch = e.touches ? e.touches[0] : e;
+            const rect = base.getBoundingClientRect();
+            let x = touch.clientX - (rect.left + rect.width/2);
+            let y = touch.clientY - (rect.top + rect.height/2);
+            
+            const dist = Math.min(35, Math.sqrt(x*x + y*y));
+            const angle = Math.atan2(y, x);
+            
+            thumb.style.left = `calc(50% + ${Math.cos(angle) * dist}px)`;
+            thumb.style.top = `calc(50% + ${Math.sin(angle) * dist}px)`;
+            
+            window.GameHandler.joystick.x = (Math.cos(angle) * dist) / 35;
+            window.GameHandler.joystick.y = (Math.sin(angle) * dist) / 35;
+        };
+
+        const handleEnd = (e) => {
+            window.GameHandler.joystick.active = false;
+            window.GameHandler.joystick.x = 0;
+            window.GameHandler.joystick.y = 0;
+            thumb.style.left = '50%';
+            thumb.style.top = '50%';
+        };
+
+        base.addEventListener('touchstart', handleStart);
+        base.addEventListener('touchmove', handleMove);
+        base.addEventListener('touchend', handleEnd);
+
+        // Cámara táctil (Arrastrar en la pantalla)
+        let camTouchStart = null;
+        gameContainer.addEventListener('touchstart', (e) => {
+            if(e.target !== gameContainer && e.target.tagName !== 'CANVAS') return;
+            camTouchStart = e.touches[0].clientX;
+        });
+        gameContainer.addEventListener('touchmove', (e) => {
+            if(camTouchStart !== null && !window.GameHandler.joystick.active) {
+                const currentX = e.touches[0].clientX;
+                window.GameHandler.cameraAngle -= (currentX - camTouchStart) * 0.005;
+                camTouchStart = currentX;
+            }
+        });
+        gameContainer.addEventListener('touchend', () => camTouchStart = null);
     }
 
     startGameLoops() {
