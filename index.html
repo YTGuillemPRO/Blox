@@ -3,76 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bloxyy - Sword Fight</title>
+    <title>Blox - Web</title>
     <style>
-        :root {
-            --bg-glass: rgba(15, 15, 25, 0.75);
-            --border-glass: rgba(255, 255, 255, 0.15);
-            --primary: #00a2ff;
-            --danger: #ff4757;
-            --red-team: #ff3333;
-            --blue-team: #3366ff;
-        }
-
-        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        * { box-sizing: border-box; font-family: 'Arial', 'Helvetica', sans-serif; }
         body { margin: 0; overflow: hidden; background-color: #87CEEB; touch-action: none; }
         #game-container { width: 100vw; height: 100vh; position: relative; }
         canvas { display: block; }
 
-        /* === PANTALLAS === */
-        .screen-overlay {
+        /* === PANTALLA LOGIN === */
+        #auth-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 1000; transition: opacity 0.5s ease;
             background: linear-gradient(135deg, #1e1e2f 0%, #0f0f1a 100%);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
         .auth-box {
-            background: var(--bg-glass); backdrop-filter: blur(16px); border: 1px solid var(--border-glass);
-            padding: 40px; border-radius: 16px; width: 90%; max-width: 350px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); color: white;
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px; border-radius: 12px; width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white;
         }
         .auth-box h2 { margin: 0 0 20px 0; text-align: center; font-weight: 300; text-transform: uppercase; }
         .auth-box input {
-            width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; outline: none;
+            width: 100%; padding: 10px; margin-bottom: 15px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: white; outline: none;
         }
-        .auth-btn { width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
-        .auth-btn.secondary { background: rgba(255,255,255,0.1); }
-        .auth-error { color: var(--danger); font-size: 12px; text-align: center; min-height: 15px; }
+        .auth-btn { width: 100%; padding: 10px; background: #00A2FF; border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; margin-bottom: 10px; border: 1px solid #0077cc; }
+        .auth-btn.secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
+        .auth-error { color: #ff4757; font-size: 12px; text-align: center; min-height: 15px; }
 
-        .home-box { text-align: center; color: white; background: var(--bg-glass); padding: 50px 70px; border-radius: 20px; border: 1px solid var(--border-glass); backdrop-filter: blur(16px); }
-        .home-box h1 { margin: 0 0 10px 0; font-size: 32px; text-transform: uppercase; }
-        .play-btn { padding: 15px 40px; font-size: 18px; font-weight: bold; text-transform: uppercase; background: linear-gradient(90deg, var(--blue-team), var(--primary)); border: none; color: white; border-radius: 8px; cursor: pointer; }
+        /* === INTERFAZ WEB CLÁSICA BLOX (2008) === */
+        #home-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f0f0f0; color: #333; z-index: 900; display: flex; flex-direction: column;
+        }
+        .web-header {
+            background: #00A2FF; padding: 5px 15px; display: flex; align-items: center;
+            color: white; font-weight: bold; border-bottom: 2px solid #0077cc;
+        }
+        .web-logo { font-size: 24px; font-weight: 900; letter-spacing: -1px; text-shadow: 1px 1px 0 #005580; }
+        .web-search { margin-left: 20px; padding: 4px; border: 1px solid #0077cc; width: 200px; }
+        .web-nav { margin-left: auto; display: flex; gap: 15px; align-items: center; font-size: 14px; }
+        .web-nav span { background: #008ecc; padding: 4px 8px; border: 1px solid #006699; border-radius: 3px; cursor: pointer; }
+        
+        .web-body { display: flex; flex: 1; overflow: hidden; }
+        .web-sidebar { width: 180px; background: #e0e0e0; padding: 15px; border-right: 1px solid #ccc; }
+        .web-sidebar h3 { margin: 0 0 10px 0; font-size: 14px; color: #444; border-bottom: 1px solid #aaa; padding-bottom: 5px; }
+        .web-sidebar ul { list-style: none; padding: 0; margin: 0; font-size: 13px; }
+        .web-sidebar li { padding: 5px 0; cursor: pointer; color: #005580; }
+        .web-sidebar li:hover { text-decoration: underline; }
+        
+        .web-content { flex: 1; padding: 20px; overflow-y: auto; background: #f9f9f9; }
+        .web-content h2 { color: #333; margin-top: 0; border-bottom: 2px solid #00A2FF; display: inline-block; padding-right: 20px; }
+        .game-grid { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
+        .game-card { background: white; border: 1px solid #ccc; width: 160px; cursor: pointer; transition: transform 0.1s; }
+        .game-card:hover { transform: translateY(-2px); border-color: #00A2FF; }
+        .game-thumb { width: 100%; height: 100px; background: #cc0000; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 18px; border-bottom: 1px solid #aaa; }
+        .game-info { padding: 8px; text-align: center; }
+        .game-info strong { display: block; color: #333; font-size: 14px; margin-bottom: 4px; }
+        .game-info .rating { color: #ff9900; font-size: 12px; }
 
-        /* === HUD === */
+        /* === HUD JUEGO 3D === */
         .ui-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-        .glass-panel { background: var(--bg-glass); backdrop-filter: blur(10px); border: 1px solid var(--border-glass); border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); color: white; }
+        .glass-panel { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: white; }
         
         .hud-chat { position: absolute; top: 20px; left: 20px; width: 250px; height: 150px; display: flex; flex-direction: column; overflow: hidden; }
-        .chat-messages { flex-grow: 1; padding: 10px; overflow-y: auto; font-size: 12px; }
-        .chat-input-container { border-top: 1px solid var(--border-glass); padding: 5px; pointer-events: auto; }
-        .chat-input-container input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 5px; border-radius: 4px; outline: none; }
+        .chat-messages { flex-grow: 1; padding: 8px; overflow-y: auto; font-size: 12px; }
+        .chat-input-container { border-top: 1px solid rgba(255,255,255,0.2); padding: 5px; pointer-events: auto; }
+        .chat-input-container input { width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 5px; border-radius: 3px; outline: none; }
 
         .hud-leaderboard { position: absolute; top: 20px; right: 20px; padding: 10px; min-width: 150px; }
-        .hud-leaderboard h3 { margin: 0 0 5px 0; font-size: 12px; text-transform: uppercase; color: #aaa; border-bottom: 1px solid var(--border-glass); padding-bottom: 5px; }
+        .hud-leaderboard h3 { margin: 0 0 5px 0; font-size: 12px; text-transform: uppercase; color: #aaa; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; }
         .lb-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
         
-        /* === CONTROLES MÓVILES === */
         .mobile-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 200px; pointer-events: none; z-index: 20; }
-        .joystick-base {
-            position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px;
-            background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
-            pointer-events: auto; touch-action: none;
-        }
-        .joystick-thumb {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%;
-        }
-        .attack-btn {
-            position: absolute; bottom: 40px; right: 30px; width: 90px; height: 90px;
-            background: rgba(255, 71, 87, 0.6); border: 2px solid rgba(255,255,255,0.4); border-radius: 50%;
-            color: white; font-size: 30px; display: flex; justify-content: center; align-items: center;
-            pointer-events: auto; user-select: none; touch-action: none;
-        }
+        .joystick-base { position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; pointer-events: auto; touch-action: none; }
+        .joystick-thumb { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; }
+        .attack-btn { position: absolute; bottom: 40px; right: 30px; width: 90px; height: 90px; background: rgba(255, 71, 87, 0.6); border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; color: white; font-size: 30px; display: flex; justify-content: center; align-items: center; pointer-events: auto; user-select: none; touch-action: none; }
         .attack-btn:active { background: rgba(255, 71, 87, 0.9); }
 
         .chat-bubble-3d { background: rgba(255, 255, 255, 0.95); padding: 6px 12px; border-radius: 12px; color: #000; font-size: 13px; font-weight: 500; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transform: translateY(-20px); pointer-events: none; opacity: 0; transition: opacity 0.3s; }
@@ -93,12 +97,12 @@
 </head>
 <body>
     <div id="game-container">
-        <div id="loading-screen">CARGANDO MOTOR 3D...</div>
+        <div id="loading-screen">CARGANDO BLOX...</div>
 
         <!-- Login -->
-        <div id="auth-screen" class="screen-overlay">
+        <div id="auth-screen">
             <div class="auth-box">
-                <h2>Bloxyy</h2>
+                <h2>Blox</h2>
                 <input type="email" id="email-input" placeholder="Correo electrónico">
                 <input type="password" id="pass-input" placeholder="Contraseña">
                 <button class="auth-btn" id="btn-login">Iniciar Sesión</button>
@@ -107,16 +111,46 @@
             </div>
         </div>
 
-        <!-- Home -->
-        <div id="home-screen" class="screen-overlay" style="display: none;">
-            <div class="home-box">
-                <h1>Sword Fight</h1>
-                <p>Red vs Blue</p>
-                <button class="play-btn" id="btn-play">JUGAR</button>
+        <!-- Página Web Clásica -->
+        <div id="home-screen" style="display: none;">
+            <div class="web-header">
+                <div class="web-logo">BLOX</div>
+                <input type="text" class="web-search" placeholder="Buscar personas, lugares...">
+                <div class="web-nav">
+                    <span id="user-display">Usuario</span>
+                    <span style="background: #00aa00; border-color: #007700;">0 Tix</span>
+                    <span style="background: #ffcc00; color: #000; border-color: #aa8800;">0 Robux</span>
+                </div>
+            </div>
+            <div class="web-body">
+                <div class="web-sidebar">
+                    <h3>Navegación</h3>
+                    <ul>
+                        <li>Inicio</li>
+                        <li>Mi Personaje</li>
+                        <li>Amigos (0)</li>
+                        <li>Mensajes (0)</li>
+                        <li>Lugares</li>
+                        <li>Foros</li>
+                    </ul>
+                </div>
+                <div class="web-content">
+                    <h2>Juegos</h2>
+                    <div class="game-grid">
+                        <div class="game-card" id="btn-play">
+                            <div class="game-thumb" style="background: linear-gradient(45deg, #cc0000, #0000cc);">⚔️ RED vs BLUE</div>
+                            <div class="game-info">
+                                <strong>Sword Fight</strong>
+                                <span class="rating">★★★★★</span>
+                                <div style="font-size: 10px; color: #888;">100% - 1 Jugador</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- HUD del Juego -->
+        <!-- HUD 3D -->
         <div class="ui-overlay" id="game-hud" style="display: none;">
             <div class="hud-chat glass-panel">
                 <div class="chat-messages" id="chat-messages"><div style="color:#aaa;">Sistema: ¡A luchar!</div></div>
@@ -124,15 +158,11 @@
             </div>
             <div class="hud-leaderboard glass-panel">
                 <h3>Arena</h3>
-                <div class="lb-row" style="color: var(--blue-team)"><span>Tú (Blue)</span><span>0</span></div>
-                <div class="lb-row" style="color: var(--red-team)"><span>Enemigo (Red)</span><span>0</span></div>
+                <div class="lb-row" style="color: #3366ff"><span>Tú (Blue)</span><span>0</span></div>
+                <div class="lb-row" style="color: #ff3333"><span>Enemigo (Red)</span><span>0</span></div>
             </div>
-            
-            <!-- Controles Móviles -->
-            <div class="mobile-controls" id="mobile-controls">
-                <div class="joystick-base" id="joystick-base">
-                    <div class="joystick-thumb" id="joystick-thumb"></div>
-                </div>
+            <div class="mobile-controls">
+                <div class="joystick-base" id="joystick-base"><div class="joystick-thumb" id="joystick-thumb"></div></div>
                 <div class="attack-btn" id="attack-btn">⚔️</div>
             </div>
         </div>
