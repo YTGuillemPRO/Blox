@@ -4,7 +4,6 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, on
 
 class LocalGameScript {
     constructor() {
-        this.playerMoney = 1000;
         this.playerHealth = 100;
 
         this.initFirebaseAuth();
@@ -14,7 +13,6 @@ class LocalGameScript {
     }
 
     initFirebaseAuth() {
-        // Tu configuración de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD7BPG3viR2fnD34hHqSHrIRLUORnPrl68",
             authDomain: "bloxyy.firebaseapp.com",
@@ -25,71 +23,64 @@ class LocalGameScript {
             measurementId: "G-10E5LGZGG1"
         };
 
-        // Inicializar Firebase y Analytics
         const app = initializeApp(firebaseConfig);
-        getAnalytics(app); // Inicializar Analytics
+        getAnalytics(app);
         this.auth = getAuth(app);
 
         const authScreen = document.getElementById('auth-screen');
+        const homeScreen = document.getElementById('home-screen');
         const gameHud = document.getElementById('game-hud');
         const errorDisplay = document.getElementById('auth-error');
+        const welcomeText = document.getElementById('welcome-user');
 
-        // Escuchar cambios en el estado de autenticación
         onAuthStateChanged(this.auth, (user) => {
             if (user) {
-                // Usuario logueado: Ocultar login, mostrar juego
-                authScreen.style.opacity = '0';
-                setTimeout(() => { 
-                    authScreen.style.display = 'none'; 
-                    gameHud.style.display = 'block'; 
-                }, 500);
+                // Logueado: Ir a Home Screen
+                authScreen.style.display = 'none';
+                gameHud.style.display = 'none';
+                homeScreen.style.display = 'flex';
             } else {
-                // Usuario no logueado: Mostrar login
+                // No logueado: Mostrar Login
                 authScreen.style.display = 'flex';
-                authScreen.style.opacity = '1';
+                homeScreen.style.display = 'none';
                 gameHud.style.display = 'none';
             }
         });
 
-        // Botón Iniciar Sesión
         document.getElementById('btn-login').addEventListener('click', () => {
             errorDisplay.innerText = '';
             const email = document.getElementById('email-input').value;
             const pass = document.getElementById('pass-input').value;
-            
-            signInWithEmailAndPassword(this.auth, email, pass)
-                .catch((error) => {
-                    errorDisplay.innerText = "Error: Correo o contraseña incorrectos.";
-                });
+            signInWithEmailAndPassword(this.auth, email, pass).catch(() => {
+                errorDisplay.innerText = "Error: Correo o contraseña incorrectos.";
+            });
         });
 
-        // Botón Crear Cuenta
         document.getElementById('btn-register').addEventListener('click', () => {
             errorDisplay.innerText = '';
             const email = document.getElementById('email-input').value;
             const pass = document.getElementById('pass-input').value;
+            createUserWithEmailAndPassword(this.auth, email, pass).catch((error) => {
+                if(error.code === 'auth/email-already-in-use') errorDisplay.innerText = "Error: Correo ya registrado.";
+                else if(error.code === 'auth/weak-password') errorDisplay.innerText = "Error: Mínimo 6 caracteres.";
+                else errorDisplay.innerText = "Error al registrar.";
+            });
+        });
 
-            createUserWithEmailAndPassword(this.auth, email, pass)
-                .catch((error) => {
-                    if(error.code === 'auth/email-already-in-use') {
-                        errorDisplay.innerText = "Error: Este correo ya está registrado.";
-                    } else if(error.code === 'auth/weak-password') {
-                        errorDisplay.innerText = "Error: La contraseña debe tener al menos 6 caracteres.";
-                    } else {
-                        errorDisplay.innerText = "Error al registrar. Revisa los datos.";
-                    }
-                });
+        // Botón JUGAR (Inicio -> Juego 3D)
+        document.getElementById('btn-play').addEventListener('click', () => {
+            homeScreen.style.display = 'none';
+            gameHud.style.display = 'block';
+            window.GameHandler.startGame(); // Iniciar el mundo 3D
         });
     }
 
     initUI() {
-        this.moneyDisplay = document.getElementById('money-amount');
         this.healthFill = document.getElementById('health-fill');
         this.updateUI();
     }
 
     updateUI() {
-        this.moneyDisplay.innerText = `${this.playerMoney}$`;
         this.healthFill.style.width = `${this.playerHealth}%`;
         this.healthFill.style.background = this.playerHealth < 30 ? '#ff4757' : '#2ed573';
     }
@@ -104,7 +95,6 @@ class LocalGameScript {
                 e.preventDefault();
                 const text = chatInput.value.trim();
                 if (text !== '') {
-                    // Obtener el email del usuario actual para el chat
                     const user = this.auth.currentUser;
                     const playerName = user ? user.email.split('@')[0] : "Player";
                     
@@ -118,17 +108,13 @@ class LocalGameScript {
                     }
                     chatInput.value = '';
                     chatInput.blur(); 
-                } else {
-                    chatInput.blur();
-                }
+                } else { chatInput.blur(); }
             }
         });
     }
 
     startGameLoops() {
-        setInterval(() => { this.playerMoney += 10; this.updateUI(); }, 3000);
         setTimeout(() => { this.playerHealth = 75; this.updateUI(); }, 5000);
-        setTimeout(() => { this.playerHealth = 20; this.updateUI(); }, 10000);
     }
 }
 
@@ -136,7 +122,6 @@ window.addEventListener('load', () => {
     const checkGameHandler = setInterval(() => {
         if (window.GameHandler && window.GameHandler.scene) {
             clearInterval(checkGameHandler);
-            console.log("Motor 3D listo. Iniciando LocalScript...");
             window.localScript = new LocalGameScript();
         }
     }, 100);
