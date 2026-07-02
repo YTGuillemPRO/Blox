@@ -5,7 +5,6 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, on
 class LocalGameScript {
     constructor() {
         this.playerHealth = 100;
-
         this.initFirebaseAuth();
         this.initUI();
         this.initChat();
@@ -32,12 +31,14 @@ class LocalGameScript {
         const homeScreen = document.getElementById('home-screen');
         const gameHud = document.getElementById('game-hud');
         const errorDisplay = document.getElementById('auth-error');
+        const userDisplay = document.getElementById('user-display');
 
         onAuthStateChanged(this.auth, (user) => {
             if (user) {
                 authScreen.style.display = 'none';
                 gameHud.style.display = 'none';
                 homeScreen.style.display = 'flex';
+                userDisplay.innerText = user.email.split('@')[0]; // Mostrar nombre en la web
             } else {
                 authScreen.style.display = 'flex';
                 homeScreen.style.display = 'none';
@@ -78,6 +79,7 @@ class LocalGameScript {
     }
 
     updateUI() {
+        if (!this.healthFill) return;
         this.healthFill.style.width = `${this.playerHealth}%`;
         this.healthFill.style.background = this.playerHealth < 30 ? '#ff4757' : '#2ed573';
     }
@@ -94,12 +96,10 @@ class LocalGameScript {
                 if (text !== '') {
                     const user = this.auth.currentUser;
                     const playerName = user ? user.email.split('@')[0] : "Player";
-                    
                     const msg = document.createElement('div');
                     msg.innerHTML = `<span style="color: #00a2ff; font-weight: bold;">${playerName}:</span> ${text}`;
                     chatMessages.appendChild(msg);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
-                    
                     if (window.GameHandler && window.GameHandler.showChatBubble) {
                         window.GameHandler.showChatBubble(text);
                     }
@@ -120,12 +120,10 @@ class LocalGameScript {
             window.GameHandler.joystick.active = true;
             base.style.opacity = '1';
             const touch = e.touches ? e.touches[0] : e;
-            const rect = base.getBoundingClientRect();
             base.style.left = (touch.clientX - 60) + 'px';
             base.style.bottom = 'auto';
             base.style.top = (touch.clientY - 60) + 'px';
-            thumb.style.left = '50%';
-            thumb.style.top = '50%';
+            thumb.style.left = '50%'; thumb.style.top = '50%';
         };
 
         const handleMove = (e) => {
@@ -135,30 +133,24 @@ class LocalGameScript {
             const rect = base.getBoundingClientRect();
             let x = touch.clientX - (rect.left + rect.width/2);
             let y = touch.clientY - (rect.top + rect.height/2);
-            
             const dist = Math.min(35, Math.sqrt(x*x + y*y));
             const angle = Math.atan2(y, x);
-            
             thumb.style.left = `calc(50% + ${Math.cos(angle) * dist}px)`;
             thumb.style.top = `calc(50% + ${Math.sin(angle) * dist}px)`;
-            
             window.GameHandler.joystick.x = (Math.cos(angle) * dist) / 35;
             window.GameHandler.joystick.y = (Math.sin(angle) * dist) / 35;
         };
 
         const handleEnd = (e) => {
             window.GameHandler.joystick.active = false;
-            window.GameHandler.joystick.x = 0;
-            window.GameHandler.joystick.y = 0;
-            thumb.style.left = '50%';
-            thumb.style.top = '50%';
+            window.GameHandler.joystick.x = 0; window.GameHandler.joystick.y = 0;
+            thumb.style.left = '50%'; thumb.style.top = '50%';
         };
 
         base.addEventListener('touchstart', handleStart);
         base.addEventListener('touchmove', handleMove);
         base.addEventListener('touchend', handleEnd);
 
-        // Cámara táctil (Arrastrar en la pantalla)
         let camTouchStart = null;
         gameContainer.addEventListener('touchstart', (e) => {
             if(e.target !== gameContainer && e.target.tagName !== 'CANVAS') return;
@@ -175,6 +167,7 @@ class LocalGameScript {
     }
 
     startGameLoops() {
+        // Simulación de daño para testear la barra de vida
         setTimeout(() => { this.playerHealth = 75; this.updateUI(); }, 5000);
     }
 }
