@@ -25,7 +25,6 @@ class GameHandler {
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.getElementById('game-container').appendChild(this.renderer.domElement);
 
-        // Renderer para textos HTML en 3D (Globos de chat)
         this.labelRenderer = new CSS2DRenderer();
         this.labelRenderer.setSize(window.innerWidth, window.innerHeight);
         this.labelRenderer.domElement.style.position = 'absolute';
@@ -33,7 +32,6 @@ class GameHandler {
         this.labelRenderer.domElement.style.pointerEvents = 'none';
         document.getElementById('game-container').appendChild(this.labelRenderer.domElement);
 
-        // Iluminación
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         this.scene.add(ambientLight);
 
@@ -138,7 +136,6 @@ class GameHandler {
 
         this.scene.add(this.player);
 
-        // Globo de chat
         const chatDiv = document.createElement('div');
         chatDiv.className = 'chat-bubble-3d';
         this.chatLabel = new CSS2DObject(chatDiv);
