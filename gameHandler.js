@@ -29,132 +29,133 @@ class GameHandler {
         this.labelRenderer.domElement.style.pointerEvents = 'none';
         document.getElementById('game-container').appendChild(this.labelRenderer.domElement);
 
-        // Iluminación
         this.scene.add(new THREE.AmbientLight(0xffffff, 0.7));
         const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
         dirLight.position.set(50, 100, 50);
         dirLight.castShadow = true;
         dirLight.shadow.mapSize.width = 2048;
         dirLight.shadow.mapSize.height = 2048;
-        dirLight.shadow.camera.left = -50;
-        dirLight.shadow.camera.right = 50;
-        dirLight.shadow.camera.top = 50;
-        dirLight.shadow.camera.bottom = -50;
+        dirLight.shadow.camera.left = -50; dirLight.shadow.camera.right = 50;
+        dirLight.shadow.camera.top = 50; dirLight.shadow.camera.bottom = -50;
         this.scene.add(dirLight);
 
-        // Controles básicos
+        // Estado de controles
         this.keys = {};
+        this.joystick = { x: 0, y: 0, active: false };
+        this.cameraAngle = 0;
+        this.isDragging = false;
+        this.lastTouch = { x: 0, y: 0 };
+
         window.addEventListener('keydown', (e) => this.keys[e.key.toLowerCase()] = true);
         window.addEventListener('keyup', (e) => this.keys[e.key.toLowerCase()] = false);
         
+        // Cámara arrastrar (PC)
+        this.renderer.domElement.addEventListener('mousedown', (e) => {
+            if(e.button === 2) { // Click derecho
+                this.isDragging = true; this.lastTouch.x = e.clientX; this.lastTouch.y = e.clientY;
+            }
+        });
+        window.addEventListener('mousemove', (e) => {
+            if(this.isDragging) {
+                this.cameraAngle -= (e.clientX - this.lastTouch.x) * 0.005;
+                this.lastTouch.x = e.clientX;
+            }
+        });
+        window.addEventListener('mouseup', () => this.isDragging = false);
+        this.renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+
         window.addEventListener('resize', () => this.onWindowResize(), false);
         document.getElementById('loading-screen').style.display = 'none';
     }
 
     setupArena() {
-        // Baseplate
         const baseGeo = new THREE.BoxGeometry(80, 1, 80);
         const canvas = document.createElement('canvas');
         canvas.width = 512; canvas.height = 512;
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#555555'; 
-        ctx.fillRect(0, 0, 512, 512);
-        ctx.strokeStyle = '#444444';
-        ctx.lineWidth = 2;
+        ctx.fillStyle = '#555555'; ctx.fillRect(0, 0, 512, 512);
+        ctx.strokeStyle = '#444444'; ctx.lineWidth = 2;
         for (let i = 0; i <= 512; i += 64) {
             ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 512); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke();
         }
         const baseTexture = new THREE.CanvasTexture(canvas);
-        baseTexture.wrapS = THREE.RepeatWrapping;
-        baseTexture.wrapT = THREE.RepeatWrapping;
-        baseTexture.repeat.set(10, 10);
+        baseTexture.wrapS = THREE.RepeatWrapping; baseTexture.wrapT = THREE.RepeatWrapping; baseTexture.repeat.set(10, 10);
 
         this.baseplate = new THREE.Mesh(baseGeo, new THREE.MeshStandardMaterial({ map: baseTexture }));
-        this.baseplate.position.y = -0.5;
-        this.baseplate.receiveShadow = true;
+        this.baseplate.position.y = -0.5; this.baseplate.receiveShadow = true;
         this.scene.add(this.baseplate);
 
-        // Spawn Azul (Jugador)
         const blueSpawn = new THREE.Mesh(new THREE.BoxGeometry(20, 0.5, 20), new THREE.MeshStandardMaterial({ color: 0x3366ff }));
-        blueSpawn.position.set(-25, 0.25, 0);
-        blueSpawn.receiveShadow = true;
-        this.scene.add(blueSpawn);
+        blueSpawn.position.set(-25, 0.25, 0); blueSpawn.receiveShadow = true; this.scene.add(blueSpawn);
 
-        // Spawn Rojo (Enemigo)
         const redSpawn = new THREE.Mesh(new THREE.BoxGeometry(20, 0.5, 20), new THREE.MeshStandardMaterial({ color: 0xff3333 }));
-        redSpawn.position.set(25, 0.25, 0);
-        redSpawn.receiveShadow = true;
-        this.scene.add(redSpawn);
+        redSpawn.position.set(25, 0.25, 0); redSpawn.receiveShadow = true; this.scene.add(redSpawn);
 
-        // Obstáculos de arena (Cajas clasicas)
         const colors = [0xffcc00, 0xff00ff, 0x00ff00, 0xffffff];
         for(let i = 0; i < 6; i++) {
             const size = Math.random() * 3 + 2;
-            const block = new THREE.Mesh(
-                new THREE.BoxGeometry(size, size, size),
-                new THREE.MeshStandardMaterial({ color: colors[i % colors.length] })
-            );
+            const block = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), new THREE.MeshStandardMaterial({ color: colors[i % colors.length] }));
             block.position.set((Math.random() - 0.5) * 50, size/2, (Math.random() - 0.5) * 50);
-            block.castShadow = true; block.receiveShadow = true;
-            this.scene.add(block);
+            block.castShadow = true; block.receiveShadow = true; this.scene.add(block);
         }
     }
 
     startGame() {
-        if(this.player) return; // Evitar duplicados
+        if(this.player) return;
         this.createPlayer();
         this.createEnemy();
         this.setupCombat();
     }
 
-    createPlayer() {
-        this.player = new THREE.Group();
-        this.player.position.set(-25, 0, 0);
+    createR6Character(colorTorso, colorHead, colorArm, colorLeg, isEnemy = false) {
+        const group = new THREE.Group();
         
-        // Torso Azul
-        const torso = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 1), new THREE.MeshStandardMaterial({ color: 0x3366ff }));
-        torso.position.y = 3; torso.castShadow = true;
-        this.player.add(torso);
+        // Torso R6 (2x2x1)
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 1), new THREE.MeshStandardMaterial({ color: colorTorso }));
+        torso.position.y = 3; torso.castShadow = true; group.add(torso);
         
-        // Cabeza
-        const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshStandardMaterial({ color: 0xffcc00 }));
-        head.position.y = 4.75; head.castShadow = true;
-        this.player.add(head);
+        // Cabeza R6 (1.2x1.2x1.2)
+        const head = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: colorHead }));
+        head.position.y = 4.6; head.castShadow = true; group.add(head);
 
-        // Brazos
+        // Brazos R6 (1x2x1)
         const armGeo = new THREE.BoxGeometry(1, 2, 1);
-        const armMat = new THREE.MeshStandardMaterial({ color: 0xffcc00 });
-        const leftArm = new THREE.Mesh(armGeo, armMat);
-        leftArm.position.set(-1.5, 3, 0); leftArm.castShadow = true;
-        this.player.add(leftArm);
+        const leftArm = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: colorArm }));
+        leftArm.position.set(-1.5, 3, 0); leftArm.castShadow = true; group.add(leftArm);
 
-        // Brazo Derecho (Portador de espada)
-        this.rightArm = new THREE.Mesh(armGeo, armMat);
-        this.rightArm.position.set(1.5, 3, 0); this.rightArm.castShadow = true;
-        this.player.add(this.rightArm);
+        const rightArm = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: colorArm }));
+        rightArm.position.set(1.5, 3, 0); rightArm.castShadow = true; group.add(rightArm);
 
-        // Espada
-        this.sword = new THREE.Group();
-        const handle = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.8, 0.2), new THREE.MeshStandardMaterial({ color: 0x000000 }));
-        handle.position.y = -0.4;
-        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.3, 3, 0.1), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.8, roughness: 0.2 }));
-        blade.position.y = 1.5;
-        this.sword.add(handle, blade);
-        this.sword.position.set(0, -1, 0);
-        this.rightArm.add(this.sword);
-
-        // Piernas
+        // Piernas R6 (1x2x1)
         const legGeo = new THREE.BoxGeometry(1, 2, 1);
-        const legMat = new THREE.MeshStandardMaterial({ color: 0x004400 });
-        const leftLeg = new THREE.Mesh(legGeo, legMat);
-        leftLeg.position.set(-0.5, 1, 0); leftLeg.castShadow = true;
-        this.player.add(leftLeg);
-        const rightLeg = new THREE.Mesh(legGeo, legMat);
-        rightLeg.position.set(0.5, 1, 0); rightLeg.castShadow = true;
-        this.player.add(rightLeg);
+        const leftLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({ color: colorLeg }));
+        leftLeg.position.set(-0.5, 1, 0); leftLeg.castShadow = true; group.add(leftLeg);
+        const rightLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({ color: colorLeg }));
+        rightLeg.position.set(0.5, 1, 0); rightLeg.castShadow = true; group.add(rightLeg);
 
+        if(!isEnemy) group.rightArmRef = rightArm; // Guardar referencia para animar
+        
+        return group;
+    }
+
+    createPlayer() {
+        this.player = this.createR6Character(0x0033cc, 0xffcc00, 0xffcc00, 0x001a33);
+        this.player.position.set(-25, 0, 0);
         this.scene.add(this.player);
+
+        // Espada en mano derecha
+        this.sword = new THREE.Group();
+        const handle = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+        handle.position.y = -0.3;
+        const guard = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.2), new THREE.MeshStandardMaterial({ color: 0x444444 }));
+        guard.position.y = 0.1;
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.4, 3.5, 0.1), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.1 }));
+        blade.position.y = 1.9;
+        this.sword.add(handle, guard, blade);
+        this.sword.position.set(0, -0.8, 0);
+        this.sword.rotation.x = Math.PI; // Apuntando hacia abajo
+        this.player.rightArmRef.add(this.sword);
 
         // Globo de chat
         const chatDiv = document.createElement('div');
@@ -165,38 +166,63 @@ class GameHandler {
     }
 
     createEnemy() {
-        // Enemigo Bótico Rojo
-        this.enemy = new THREE.Group();
+        this.enemy = this.createR6Character(0xcc0000, 0xffcc00, 0xffcc00, 0x330000, true);
         this.enemy.position.set(25, 0, 0);
-        
-        const torso = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 1), new THREE.MeshStandardMaterial({ color: 0xff3333 }));
-        torso.position.y = 3; torso.castShadow = true;
-        this.enemy.add(torso);
-        const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshStandardMaterial({ color: 0xffcc00 }));
-        head.position.y = 4.75; head.castShadow = true;
-        this.enemy.add(head);
-
         this.scene.add(this.enemy);
+    }
+
+    // Generador de sonido de espada (Sintetizador Web Audio API)
+    playSwordSound() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for(let i=0; i<data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 2); // Ruido descendente
+        
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        
+        const filter = ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(800, ctx.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.2);
+        filter.Q.value = 5;
+        
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.6, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        
+        source.connect(filter).connect(gain).connect(ctx.destination);
+        source.start();
     }
 
     setupCombat() {
         this.isAttacking = false;
+        
+        const attackAction = () => {
+            if(!this.isAttacking) this.attack();
+        };
+
+        // PC: Click izquierdo
         window.addEventListener('mousedown', (e) => {
-            if(e.button === 0 && !this.isAttacking) { // Clic izquierdo
-                this.attack();
-            }
+            if(e.button === 0) attackAction();
         });
+
+        // Móvil: Botón de ataque
+        const btn = document.getElementById('attack-btn');
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); attackAction(); });
+        btn.addEventListener('click', attackAction);
     }
 
     attack() {
         this.isAttacking = true;
+        this.playSwordSound();
         let progress = 0;
         const attackInterval = setInterval(() => {
-            progress += 0.2;
-            this.rightArm.rotation.x = -Math.PI/2 * Math.sin(progress * Math.PI);
+            progress += 0.15;
+            this.player.rightArmRef.rotation.x = -Math.PI/2 * Math.sin(progress * Math.PI);
             if(progress >= 1) {
                 clearInterval(attackInterval);
-                this.rightArm.rotation.x = 0;
+                this.player.rightArmRef.rotation.x = 0;
                 this.isAttacking = false;
             }
         }, 20);
@@ -212,24 +238,48 @@ class GameHandler {
     updatePlayerMovement() {
         if(!this.player) return;
         const speed = 0.3;
-        const rotSpeed = 0.05;
-        
-        if(this.keys['w']) this.player.position.z -= speed;
-        if(this.keys['s']) this.player.position.z += speed;
-        if(this.keys['a']) this.player.position.x -= speed;
-        if(this.keys['d']) this.player.position.x += speed;
+        let moveX = 0, moveZ = 0;
+
+        // Entrada de teclado
+        if(this.keys['w']) moveZ -= 1;
+        if(this.keys['s']) moveZ += 1;
+        if(this.keys['a']) moveX -= 1;
+        if(this.keys['d']) moveX += 1;
+
+        // Entrada de joystick
+        if(this.joystick.active) {
+            moveX = this.joystick.x;
+            moveZ = this.joystick.y;
+        }
+
+        // Normalizar
+        const len = Math.sqrt(moveX*moveX + moveZ*moveZ);
+        if(len > 0) {
+            moveX /= len; moveZ /= len;
+            
+            // Rotar el vector de movimiento basado en la cámara
+            const cosY = Math.cos(this.cameraAngle);
+            const sinY = Math.sin(this.cameraAngle);
+            const worldX = moveX * cosY - moveZ * sinY;
+            const worldZ = moveX * sinY + moveZ * cosY;
+
+            this.player.position.x += worldX * speed;
+            this.player.position.z += worldZ * speed;
+
+            // Hacer que el jugador mire hacia donde camina
+            this.player.rotation.y = Math.atan2(worldX, worldZ);
+        }
 
         // Limitar a la baseplate
         this.player.position.x = Math.max(-39, Math.min(39, this.player.position.x));
         this.player.position.z = Math.max(-39, Math.min(39, this.player.position.z));
 
-        // Cámara sigue al jugador
-        const targetPos = new THREE.Vector3(
-            this.player.position.x, 
-            this.player.position.y + 10, 
-            this.player.position.z + 15
-        );
-        this.camera.position.lerp(targetPos, 0.1);
+        // Actualizar cámara en tercera persona
+        const targetCamX = this.player.position.x - Math.sin(this.cameraAngle) * 15;
+        const targetCamZ = this.player.position.z - Math.cos(this.cameraAngle) * 15;
+        const targetCamY = this.player.position.y + 10;
+        
+        this.camera.position.lerp(new THREE.Vector3(targetCamX, targetCamY, targetCamZ), 0.1);
         this.camera.lookAt(this.player.position.x, this.player.position.y + 3, this.player.position.z);
     }
 
