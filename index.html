@@ -3,892 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blox</title>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>Classic World - Web Engine</title>
     <style>
-        /* === BASE === */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-glass: rgba(15, 15, 25, 0.65);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --primary: #00a2ff;
+            --danger: #ff4757;
+            --success: #2ed573;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
         body {
-            font-family: 'Source Sans Pro', Arial, sans-serif;
-            background: white;
-            color: #191919;
-            user-select: none;
-            overflow-x: hidden;
-        }
-        body.playing-mode {
+            margin: 0;
             overflow: hidden;
-            background: #6b9bd1;
-            color: white;
+            background-color: #87CEEB;
         }
 
-        /* ====================================================================
-           LAUNCHER VIEW (light theme)
-           ==================================================================== */
-        #launcher-view {
-            display: block;
-            min-height: 100vh;
-            background: white;
-        }
-        body.playing-mode #launcher-view { display: none; }
-
-        /* --- LEFT SIDEBAR --- */
-        .left-sidebar {
-            position: fixed;
-            top: 0; left: 0; bottom: 0;
-            width: 64px;
-            background: #191919;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 14px 0;
-            gap: 8px;
-            z-index: 100;
-        }
-        .ls-logo {
-            color: white;
-            font: 800 22px 'Source Sans Pro';
-            letter-spacing: -0.5px;
-            margin-bottom: 18px;
-            cursor: pointer;
-        }
-        .ls-icon {
-            width: 56px; height: 56px;
-            border: none;
-            background: transparent;
-            color: #b0b0b0;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            font: 700 10px 'Source Sans Pro';
-            transition: background 0.15s, color 0.15s;
-        }
-        .ls-icon:hover { background: rgba(255,255,255,0.06); color: white; }
-        .ls-icon.active { background: rgba(255,255,255,0.08); color: white; }
-        .ls-icon .ic { font-size: 22px; line-height: 1; }
-
-        /* --- TOP BAR --- */
-        .launcher-top {
-            position: fixed;
-            top: 0;
-            left: 64px;
-            right: 0;
-            height: 56px;
-            background: white;
-            display: flex;
-            align-items: center;
-            padding: 0 28px;
-            gap: 18px;
-            z-index: 90;
-        }
-        .lt-title {
-            font: 800 18px 'Source Sans Pro';
-            letter-spacing: 1.5px;
-            flex-shrink: 0;
-            color: #191919;
-        }
-        .lt-title .tag {
-            background: #191919;
-            color: white;
-            border-radius: 4px;
-            padding: 3px 8px;
-            font-size: 11px;
-            margin-left: 6px;
-            letter-spacing: 1px;
-            font-weight: 700;
-        }
-        .lt-search {
-            flex-grow: 1;
-            max-width: 520px;
-            margin: 0 auto;
-            height: 38px;
-            background: #f5f5f5;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            padding: 0 14px;
-            gap: 10px;
-            color: #888;
-            transition: background 0.15s;
-        }
-        .lt-search:focus-within { background: #ebebeb; }
-        .lt-search input {
-            flex-grow: 1;
-            border: none;
-            outline: none;
-            background: transparent;
-            font: 500 14px 'Source Sans Pro';
-            color: #333;
-        }
-        .lt-search input::placeholder { color: #888; }
-        .lt-right {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .lt-user {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px 6px 6px;
-            border-radius: 18px;
-            cursor: pointer;
-        }
-        .lt-user:hover { background: #f0f0f0; }
-        .lt-user .avatar {
-            width: 30px; height: 30px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #f2c280, #c18b5d);
-            color: #5a3a1a;
-            font: 800 12px 'Source Sans Pro';
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .lt-user .name { font: 700 14px 'Source Sans Pro'; color: #191919; }
-        .lt-icon {
-            width: 36px; height: 36px;
-            border-radius: 50%;
-            background: transparent;
-            border: none;
-            cursor: pointer;
+        #game-container {
+            width: 100vw;
+            height: 100vh;
             position: relative;
-            color: #191919;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.15s;
         }
-        .lt-icon:hover { background: #f0f0f0; }
-        .lt-icon svg { width: 20px; height: 20px; }
-        .lt-icon .badge {
+
+        canvas { display: block; }
+
+        /* === PANTALLA DE LOGIN/REGISTRO (FIREBASE) === */
+        #auth-screen {
             position: absolute;
-            top: 0; right: 0;
-            background: #ff3b30;
-            color: white;
-            font: 800 10px 'Source Sans Pro';
-            min-width: 16px; height: 16px;
-            border-radius: 8px;
-            padding: 0 4px;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e1e2f 0%, #0f0f1a 100%);
             display: flex;
-            align-items: center;
             justify-content: center;
-            border: 2px solid white;
-        }
-
-        /* --- MAIN CONTENT --- */
-        .main-content {
-            margin-left: 64px;
-            margin-top: 56px;
-            padding: 28px 36px 80px;
-            max-width: 1500px;
-            background: white;
-        }
-        .section-title {
-            font: 800 22px 'Source Sans Pro';
-            margin: 0 0 18px;
-            display: flex;
             align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            color: #191919;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
         }
-        .section-title .chev {
-            transition: transform 0.15s;
-            font-weight: 400;
-            color: #888;
-            font-size: 20px;
-        }
-        .section-title:hover .chev { transform: translateX(4px); }
 
-        /* --- FRIENDS ROW --- */
-        .friends-section {
-            display: flex;
-            gap: 22px;
-            margin-bottom: 40px;
+        .auth-box {
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            padding: 40px;
+            border-radius: 16px;
+            width: 350px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            color: white;
         }
-        .destacada-col {
-            flex-shrink: 0;
-            width: 100px;
+
+        .auth-box h2 {
+            margin: 0 0 20px 0;
             text-align: center;
-        }
-        .destacada-label {
-            font: 700 10px 'Source Sans Pro';
+            font-weight: 300;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #888;
-            margin-bottom: 8px;
-        }
-        .destacada-col .ava {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #f0f0f0, #d8d8d8);
-            color: #888;
-            font: 800 28px 'Source Sans Pro';
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin: 0 auto 6px;
-            cursor: pointer;
-            transition: transform 0.15s;
-        }
-        .destacada-col .ava:hover { transform: scale(1.05); }
-        .destacada-col .name { font: 600 12px 'Source Sans Pro'; color: #191919; }
-        .friends-list {
-            display: flex;
-            gap: 14px;
-            overflow-x: auto;
-            flex-grow: 1;
-            padding-bottom: 4px;
-            scrollbar-width: thin;
-            align-items: flex-end;
-        }
-        .friends-list::-webkit-scrollbar { height: 6px; }
-        .friends-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
-        .friend-card {
-            flex-shrink: 0;
-            width: 90px;
-            text-align: center;
-            cursor: pointer;
-        }
-        .friend-card .ava {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--a1), var(--a2));
-            margin: 0 auto 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font: 800 22px 'Source Sans Pro';
-            color: white;
-            position: relative;
-            border: 3px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-            transition: transform 0.15s;
-        }
-        .friend-card:hover .ava { transform: scale(1.06); }
-        .friend-card.online .ava::after {
-            content: '';
-            position: absolute;
-            bottom: 2px; right: 2px;
-            width: 16px; height: 16px;
-            border-radius: 50%;
-            background: #4cd964;
-            border: 3px solid white;
-        }
-        .friend-card .name {
-            font-size: 12px;
-            color: #191919;
-            font-weight: 600;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            line-height: 1.3;
-        }
-        .friend-card .name .sub {
-            display: block;
-            font-size: 11px;
-            color: #888;
-            font-weight: 400;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
-        /* --- GAME GRIDS --- */
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 16px;
-            margin-bottom: 40px;
-        }
-        .game-grid.cols-9 {
-            grid-template-columns: repeat(9, 1fr);
-            gap: 12px;
-            margin-bottom: 40px;
-        }
-        .game-card {
-            background: white;
-            cursor: pointer;
-            transition: transform 0.15s;
-        }
-        .game-card:hover { transform: translateY(-2px); }
-        .game-card .thumb {
+        .auth-box input {
             width: 100%;
-            aspect-ratio: 1.2 / 1;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: white;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .auth-box input:focus {
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .auth-btn:hover { background: #008ecc; }
+        .auth-btn.secondary { background: rgba(255,255,255,0.1); }
+        .auth-btn.secondary:hover { background: rgba(255,255,255,0.2); }
+
+        /* === HUD DEL JUEGO (MATE/CRISTAL) === */
+        .ui-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .glass-panel {
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glass);
             border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 8px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             color: white;
         }
-        .game-card .thumb .emoji {
-            font-size: 64px;
-            filter: drop-shadow(0 3px 8px rgba(0,0,0,0.35));
-        }
-        .game-card .thumb .corner-tag {
-            position: absolute;
-            top: 8px; left: 8px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            font: 700 11px 'Source Sans Pro';
-            padding: 3px 7px;
-            border-radius: 4px;
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-        }
-        .game-card .thumb .new-tag {
-            position: absolute;
-            top: 8px; right: 8px;
-            background: #ff3344;
-            color: white;
-            font: 800 10px 'Source Sans Pro';
-            padding: 3px 8px;
-            border-radius: 4px;
-            letter-spacing: 1px;
-        }
-        .game-card .thumb .play-tag {
-            position: absolute;
-            top: 8px; left: 8px;
-            background: var(--rb-robux-green, #4cd964);
-            color: white;
-            font: 800 10px 'Source Sans Pro';
-            padding: 3px 8px;
-            border-radius: 4px;
-            letter-spacing: 1px;
-        }
-        .game-card .thumb .center-text {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font: 800 24px 'Source Sans Pro';
-            text-shadow: 0 2px 6px rgba(0,0,0,0.5);
-            letter-spacing: 1px;
-            text-align: center;
-            padding: 10px;
-            line-height: 1.1;
-        }
-        .game-card .title {
-            font: 700 14px 'Source Sans Pro';
-            color: #191919;
-            margin-bottom: 4px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-        }
-        .game-card .meta {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: #666;
-        }
-        .game-card .meta .ad {
-            color: #ff3b30;
-            font-weight: 700;
-            margin-right: 2px;
-        }
-        .game-card .meta .pct { font-weight: 600; color: #444; }
-        .game-card .meta .sep {
-            color: #ccc;
-            margin: 0 2px;
-        }
-        .game-card .meta .players { color: #888; }
 
-        /* --- SEARCH FILTERING --- */
-        .section[hidden] { display: none; }
-
-        /* ====================================================================
-           GAME VIEW (3D + dark UI — same as before, all wrapped)
-           ==================================================================== */
-        body.playing-mode #game-view { display: block; }
-        #game-view { display: none; }
-
-        /* Los estilos del in-game UI van dentro de #game-view para no chocar.
-           Reutilizo los nombres originales añadiendo prefijo al alcance (#game-view ...) */
-        #game-view #game-container {
-            position: fixed;
-            inset: 56px 0 0 0;
-            z-index: 1;
+        /* Leaderboard */
+        .hud-leaderboard {
+            position: absolute;
+            top: 20px; right: 20px;
+            padding: 15px;
+            min-width: 200px;
         }
-        #game-view canvas { display: block; }
-
-        /* TOP BAR (dark) */
-        #game-view .rb-topbar {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: 56px;
-            background: rgba(25, 25, 25, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(0,0,0,0.6);
-            display: flex;
-            align-items: center;
-            padding: 0 14px;
-            gap: 10px;
-            z-index: 200;
+        .hud-leaderboard h3 {
+            margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #aaa;
+            border-bottom: 1px solid var(--border-glass); padding-bottom: 5px;
         }
-        #game-view .rb-hamburger {
-            width: 40px; height: 40px;
-            background: transparent; border: none; cursor: pointer;
+        .lb-row {
+            display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px;
+        }
+        .lb-money { color: var(--success); font-weight: bold; }
+
+        /* Chat */
+        .hud-chat {
+            position: absolute;
+            top: 20px; left: 20px;
+            width: 350px; height: 200px;
             display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            gap: 5px; border-radius: 6px;
+            overflow: hidden;
         }
-        #game-view .rb-hamburger:hover { background: rgba(255,255,255,0.08); }
-        #game-view .rb-hamburger span {
-            width: 20px; height: 2.5px; background: white; border-radius: 2px;
+        .chat-messages {
+            flex-grow: 1; padding: 10px; overflow-y: auto; font-size: 13px;
+            display: flex; flex-direction: column; gap: 4px;
         }
-        #game-view .rb-logo {
-            font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
-            padding: 4px 8px; border-radius: 6px; cursor: pointer;
-        }
-        #game-view .rb-logo:hover { background: rgba(255,255,255,0.08); }
-        #game-view .rb-search {
-            flex-grow: 1; max-width: 560px; height: 38px;
-            background: rgba(255,255,255,0.95); border-radius: 8px;
-            display: flex; align-items: center; padding: 0 14px; gap: 10px;
-        }
-        #game-view .rb-search input {
-            flex-grow: 1; border: none; outline: none; background: transparent;
-            font: 500 15px 'Source Sans Pro'; color: #333;
-        }
-        #game-view .rb-topbar-right {
-            display: flex; align-items: center; gap: 4px; margin-left: auto;
-        }
-        #game-view .rb-robux {
-            background: rgba(0,0,0,0.4); border-radius: 18px;
-            padding: 5px 14px; font-weight: 700; font-size: 14px;
-            display: flex; align-items: center; gap: 6px;
-            cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
-        }
-        #game-view .rb-robux .r$ { color: #4cd964; font-weight: 800; }
-        #game-view .rb-icon-btn {
-            width: 40px; height: 40px; border-radius: 50%;
-            background: transparent; border: none; color: white;
-            font-size: 18px; cursor: pointer; position: relative;
-        }
-        #game-view .rb-icon-btn:hover { background: rgba(255,255,255,0.08); }
-        #game-view .rb-icon-btn .badge {
-            position: absolute; top: 4px; right: 4px;
-            background: #ff4d4d; color: white; font-size: 10px; font-weight: 700;
-            width: 16px; height: 16px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            border: 2px solid #191919;
-        }
-        #game-view .rb-profile {
-            width: 38px; height: 38px; border-radius: 50%;
-            background: linear-gradient(135deg, #f2c280, #c18b5d);
-            font-weight: 800; display: flex; align-items: center;
-            justify-content: center; cursor: pointer;
-            border: 2px solid rgba(255,255,255,0.2);
-            font-size: 15px; color: #5a3a1a;
-        }
-
-        /* SIDEBAR (dark in-game) */
-        #game-view .rb-sidebar {
-            position: fixed; top: 56px; left: 0; bottom: 0; width: 220px;
-            background: rgba(20, 20, 20, 0.96); backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            transform: translateX(-100%); transition: transform 0.25s ease;
-            z-index: 150; padding: 16px 8px;
-            border-right: 1px solid rgba(0,0,0,0.6);
-            overflow-y: auto;
-        }
-        #game-view .rb-sidebar.open { transform: translateX(0); }
-        #game-view .sb-title {
-            text-transform: uppercase; font-size: 11px; color: #b8b8b8;
-            letter-spacing: 1px; padding: 0 14px 8px; margin-top: 4px;
-        }
-        #game-view .sb-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px 14px; width: 100%;
-            background: transparent; border: none; color: white;
-            font: 600 14px 'Source Sans Pro'; text-align: left;
-            border-radius: 8px; cursor: pointer; margin-bottom: 2px;
-        }
-        #game-view .sb-item:hover { background: rgba(255,255,255,0.07); }
-        #game-view .sb-item .ic { font-size: 18px; width: 22px; text-align: center; }
-
-        /* IN-GAME UI */
-        #game-view .game-ui {
-            position: fixed;
-            top: 56px; left: 0; right: 0; bottom: 0;
-            pointer-events: none; z-index: 100;
-        }
-        #game-view .back-home-btn {
-            position: absolute;
-            top: 14px; left: 14px;
-            background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1); color: white;
-            padding: 8px 14px; border-radius: 8px;
-            font: 700 13px 'Source Sans Pro'; cursor: pointer;
-            display: flex; align-items: center; gap: 8px;
-            pointer-events: auto; z-index: 110;
-            transition: background 0.15s, transform 0.15s;
-        }
-        #game-view .back-home-btn:hover {
-            background: rgba(40, 40, 40, 0.95);
-            transform: translateX(-2px);
-        }
-        #game-view .rb-menu-btn {
-            position: absolute; top: 14px; left: 180px;
-            background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1); color: white;
-            padding: 8px 14px; border-radius: 8px;
-            font: 700 13px 'Source Sans Pro'; cursor: pointer;
-            display: flex; align-items: center; gap: 8px;
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+        
+        .chat-input-container {
+            border-top: 1px solid var(--border-glass);
+            padding: 8px;
             pointer-events: auto;
         }
-        #game-view .game-menu {
-            position: absolute; top: 56px; left: 180px; width: 220px;
-            background: rgba(20, 20, 20, 0.96); backdrop-filter: blur(14px);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
-            padding: 6px; display: none; pointer-events: auto;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+        .chat-input-container input {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+            color: white; padding: 8px; border-radius: 6px; outline: none;
         }
-        #game-view .game-menu.open { display: block; }
-        #game-view .gm-item {
-            display: flex; align-items: center; gap: 10px;
-            width: 100%; padding: 10px 14px;
-            background: transparent; border: none; color: white;
-            font: 600 14px 'Source Sans Pro'; text-align: left;
-            border-radius: 6px; cursor: pointer;
-        }
-        #game-view .gm-item:hover { background: rgba(255,255,255,0.08); }
-        #game-view .gm-item.danger { color: #d63d3d; }
-        #game-view .gm-item .ic { width: 18px; text-align: center; }
-        #game-view .gm-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 8px; }
 
-        #game-view .game-title {
-            position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-            background: rgba(20, 20, 20, 0.75); backdrop-filter: blur(8px);
-            padding: 7px 20px; border-radius: 20px;
-            font: 700 14px 'Source Sans Pro';
-            display: flex; align-items: center; gap: 10px;
-        }
-        #game-view .game-title .ping {
-            font-size: 11px; opacity: 0.7;
-            display: flex; align-items: center; gap: 4px;
-        }
-        #game-view .game-title .ping::before {
-            content: ''; display: block;
-            width: 6px; height: 6px; border-radius: 50%; background: #4cd964;
-        }
-        #game-view .players-panel {
-            position: absolute; top: 14px; right: 14px;
-            pointer-events: auto; display: flex; flex-direction: column;
-            align-items: flex-end; gap: 6px;
-        }
-        #game-view .players-toggle {
-            background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1); color: white;
-            padding: 8px 14px; border-radius: 8px;
-            font: 700 13px 'Source Sans Pro'; cursor: pointer;
-            display: flex; align-items: center; gap: 8px;
-        }
-        #game-view .players-toggle .count {
-            background: rgba(255,255,255,0.15);
-            padding: 2px 8px; border-radius: 10px; font-size: 12px;
-        }
-        #game-view .players-list {
-            background: rgba(20, 20, 20, 0.94); backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
-            width: 240px; overflow: hidden; display: none;
-            box-shadow: 0 10px 24px rgba(0,0,0,0.4);
-        }
-        #game-view .players-list.open { display: block; }
-        #game-view .players-list .pl-header {
-            padding: 8px 12px; font-size: 11px; text-transform: uppercase;
-            letter-spacing: 1px; background: rgba(0,0,0,0.3); color: #b8b8b8;
-        }
-        #game-view .player-item {
-            padding: 8px 12px; font-size: 13px; display: flex;
-            align-items: center; gap: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-        }
-        #game-view .player-item:last-child { border-bottom: none; }
-        #game-view .player-item .dot {
-            width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
-            border: 2px solid #00a2ff;
-        }
-        #game-view .player-item .name { flex-grow: 1; }
-        #game-view .player-item .money { color: #4cd964; font-weight: 700; font-size: 12px; }
-
-        #game-view .minimap-container {
-            position: absolute; top: 70px; left: 14px;
-            width: 140px; height: 140px;
-            background: rgba(0,0,0,0.7);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 50%; overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            z-index: 60;
-        }
-        #game-view #minimap { width: 100%; height: 100%; display: block; }
-        #game-view .minimap-label {
-            position: absolute; top: 4px; left: 50%;
+        /* Salud y Herramientas */
+        .hud-bottom {
+            position: absolute;
+            bottom: 20px; left: 50%;
             transform: translateX(-50%);
-            font-size: 9px; color: rgba(255,255,255,0.65);
-            letter-spacing: 2px; font-weight: 700;
-        }
-        #game-view .minimap-compass {
-            position: absolute; bottom: 4px; left: 50%;
-            transform: translateX(-50%);
-            font-size: 10px; color: rgba(255,255,255,0.7);
-            background: rgba(0,0,0,0.4); border-radius: 8px;
-            padding: 1px 6px; font-weight: 700;
+            display: flex; align-items: center; gap: 20px;
         }
 
-        #game-view .chat-container {
-            position: absolute; bottom: 14px; left: 14px; pointer-events: auto;
+        .health-bar {
+            width: 200px; height: 12px;
+            background: rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden;
         }
-        #game-view .chat-toggle {
-            background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1); color: white;
-            padding: 9px 16px; border-radius: 8px;
-            font: 700 13px 'Source Sans Pro'; cursor: pointer;
-            display: flex; align-items: center; gap: 8px;
-        }
-        #game-view .chat-window {
-            display: none; width: 380px; height: 240px;
-            background: rgba(20, 20, 20, 0.92); backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
-            margin-bottom: 6px; flex-direction: column;
-            overflow: hidden; box-shadow: 0 10px 28px rgba(0,0,0,0.5);
-        }
-        #game-view .chat-container.open .chat-window { display: flex; }
-        #game-view .chat-container.open .chat-toggle { display: none; }
-        #game-view .chat-header {
-            background: linear-gradient(to bottom, rgba(0,120,215,0.5), rgba(0,95,184,0.5));
-            padding: 10px 14px; font-size: 12px; font-weight: 700;
-            letter-spacing: 1px; text-transform: uppercase;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        #game-view .chat-header .close-btn {
-            cursor: pointer; opacity: 0.7; font-size: 18px;
-            background: none; border: none; color: white; padding: 0 4px;
-        }
-        #game-view .chat-header .close-btn:hover { opacity: 1; }
-        #game-view .chat-messages {
-            flex-grow: 1; padding: 8px 12px; overflow-y: auto;
-            font-size: 14px; line-height: 1.4;
-        }
-        #game-view .chat-input {
-            border: none; border-top: 1px solid rgba(0,0,0,0.4);
-            background: rgba(255,255,255,0.95); color: #222;
-            padding: 10px 12px; font: 14px 'Source Sans Pro'; outline: none;
+        .health-fill {
+            height: 100%; width: 100%; background: var(--danger);
+            transition: width 0.3s, background 0.3s;
         }
 
-        #game-view .health-container {
-            position: absolute; bottom: 14px; right: 14px;
-            display: flex; flex-direction: column; align-items: flex-end;
-            gap: 8px; pointer-events: auto;
+        .hotbar {
+            display: flex; gap: 8px; padding: 8px;
         }
-        #game-view .health-bar-bg {
-            width: 240px; height: 32px;
-            background: rgba(0,0,0,0.6);
-            border: 2px solid #000; border-radius: 8px;
-            position: relative; overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-        }
-        #game-view .health-bar {
-            height: 100%;
-            background: linear-gradient(to bottom, #00e08a 0%, #00b06f 60%, #008c58 100%);
-            transition: width 0.25s ease-out, background 0.2s;
-        }
-        #game-view .health-label {
-            position: absolute; inset: 0;
-            display: flex; align-items: center; justify-content: center;
-            font: 700 13px 'Source Sans Pro';
-            text-shadow: 0 1px 0 rgba(0,0,0,0.7);
-        }
-        #game-view .respawn-btn {
-            background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1); color: white;
-            padding: 7px 16px; border-radius: 8px;
-            font: 700 12px 'Source Sans Pro'; cursor: pointer;
-        }
-        #game-view .backpack-btn {
-            position: absolute; bottom: 270px; left: 14px;
-            width: 54px; height: 54px;
-            background: rgba(20, 20, 20, 0.85);
-            border: 2px solid rgba(255,255,255,0.15); border-radius: 12px;
-            display: grid; grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: 1fr 1fr 1fr; gap: 2px;
-            padding: 5px; cursor: pointer; pointer-events: auto;
-        }
-        #game-view .backpack-btn .slot {
-            background: rgba(255,255,255,0.08); border-radius: 3px;
-        }
-        #game-view .backpack-btn .slot.filled {
-            background: linear-gradient(135deg, #4cd964, #00b06f);
-        }
-        #game-view .help-hint {
-            position: absolute; bottom: 14px; left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.55); backdrop-filter: blur(8px);
-            padding: 7px 14px; border-radius: 18px;
-            font-size: 12px; color: #b8b8b8;
-            pointer-events: none; opacity: 0; transition: opacity 0.4s;
-        }
-        #game-view .help-hint.show { opacity: 1; }
-        #game-view .help-hint kbd {
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.2); border-radius: 3px;
-            padding: 1px 5px; font-family: monospace; font-size: 11px;
+        .hotbar-slot {
+            width: 45px; height: 45px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; font-size: 10px; color: #888;
         }
 
-        /* DISCOVER OVERLAY */
-        #game-view .discover-overlay {
-            position: fixed; top: 56px; left: 0; right: 0; bottom: 0;
-            background: #191919; z-index: 300;
-            transform: translateY(100%);
-            transition: transform 0.3s ease-out;
-            overflow-y: auto; pointer-events: auto;
+        /* Globo de Chat 3D */
+        .chat-bubble-3d {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0,0,0,0.1);
+            padding: 6px 12px; border-radius: 12px;
+            color: #000; font-size: 13px; font-weight: 500;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transform: translateY(-20px);
+            pointer-events: none;
+            opacity: 0; transition: opacity 0.3s;
         }
-        #game-view .discover-overlay.open { transform: translateY(0); }
-        #game-view .discover-header {
-            position: sticky; top: 0;
-            background: rgba(25, 25, 25, 0.97);
-            backdrop-filter: blur(14px);
-            border-bottom: 1px solid rgba(0,0,0,0.6);
-            padding: 16px 24px; display: flex;
-            align-items: center; gap: 16px; z-index: 10;
+        
+        /* Pantalla de carga */
+        #loading-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; color: white;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 500; font-size: 24px; letter-spacing: 2px;
         }
-        #game-view .discover-back {
-            background: rgba(255,255,255,0.1); border: none; color: white;
-            padding: 9px 16px; border-radius: 8px;
-            font: 600 14px 'Source Sans Pro'; cursor: pointer;
-        }
-        #game-view .discover-header h2 {
-            margin: 0; font-size: 22px; font-weight: 800;
-        }
-        #game-view .discover-spacer { flex-grow: 1; }
-        #game-view .discover-search {
-            background: rgba(255,255,255,0.95); border: none;
-            color: #333; padding: 9px 14px; border-radius: 8px;
-            font: 500 14px 'Source Sans Pro'; width: 280px; outline: none;
-        }
-        #game-view .discover-content {
-            padding: 24px; max-width: 1400px; margin: 0 auto;
-        }
-        #game-view .featured-card {
-            border-radius: 14px; overflow: hidden; margin-bottom: 28px;
-            cursor: pointer; transition: transform 0.15s;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-        }
-        #game-view .featured-card:hover { transform: translateY(-2px); }
-        #game-view .featured-thumb {
-            width: 100%; height: 260px;
-            display: flex; align-items: center; justify-content: flex-start;
-            padding: 0 36px; position: relative;
-        }
-        #game-view .featured-info {
-            background: rgba(0,0,0,0.45); backdrop-filter: blur(8px);
-            padding: 24px 32px; border-radius: 14px; max-width: 480px;
-        }
-        #game-view .featured-info h1 {
-            margin: 0 0 6px; font-size: 36px; font-weight: 800;
-        }
-        #game-view .featured-info p {
-            margin: 0 0 16px; font-size: 14px; opacity: 0.85;
-        }
-        #game-view .featured-play {
-            background: #4cd964; color: white; border: none;
-            padding: 12px 28px; border-radius: 10px;
-            font: 800 16px 'Source Sans Pro'; cursor: pointer;
-            box-shadow: 0 4px 12px rgba(76,217,100,0.4);
-        }
-        #game-view .featured-emoji {
-            position: absolute; right: 36px; bottom: 24px;
-            font-size: 140px; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));
-            transform: rotate(-8deg);
-        }
-        #game-view .discover-section { margin-bottom: 28px; }
-        #game-view .disc-title {
-            margin: 0 0 14px; font-size: 18px; font-weight: 700;
-        }
-        #game-view .disc-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 16px;
-        }
-        #game-view .g-card {
-            background: rgba(40, 40, 40, 0.85); border-radius: 12px;
-            overflow: hidden; cursor: pointer;
-            transition: transform 0.15s, box-shadow 0.15s;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        #game-view .g-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-        #game-view .g-card .g-thumb {
-            width: 100%; height: 130px;
-            display: flex; align-items: center; justify-content: center;
-            position: relative; font-size: 64px;
-        }
-        #game-view .g-card .g-info { padding: 12px 14px; }
-        #game-view .g-card .g-title {
-            font: 700 15px 'Source Sans Pro'; color: white; margin-bottom: 4px;
-        }
-        #game-view .g-card .g-creator { color: #aaa; font-size: 12px; }
-        #game-view .g-card .g-stats {
-            display: flex; justify-content: space-between;
-            font-size: 12px; color: #ccc; margin-top: 8px;
-        }
-
-        /* 3D LABELS */
-        #game-view .chat-bubble-3d {
-            background: white; border: 2px solid #000; border-radius: 10px;
-            padding: 6px 12px; color: #111;
-            font: 600 14px 'Source Sans Pro', Arial, sans-serif;
-            max-width: 240px; white-space: nowrap;
-            overflow: hidden; text-overflow: ellipsis;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.25); position: relative;
-        }
-        #game-view .chat-bubble-3d::after {
-            content: ''; position: absolute; bottom: -10px; left: 18px;
-            width: 0; height: 0; border-left: 10px solid transparent;
-            border-right: 10px solid transparent; border-top: 10px solid white;
-        }
-        #game-view .chat-bubble-3d::before {
-            content: ''; position: absolute; bottom: -12px; left: 16px;
-            width: 0; height: 0; border-left: 12px solid transparent;
-            border-right: 12px solid transparent; border-top: 12px solid #000;
-        }
-        #game-view .username-3d {
-            background: #00A2FF; border: 2px solid rgba(0,0,0,0.55);
-            border-radius: 4px; padding: 2px 10px; color: white;
-            font: 700 13px 'Source Sans Pro', Arial, sans-serif;
-            text-shadow: 0 1px 0 rgba(0,0,0,0.5); white-space: nowrap;
-            box-shadow: 0 1px 0 rgba(0,0,0,0.3);
-        }
-        #game-view #loading-screen {
-            position: fixed; inset: 0; background: #191919;
-            display: flex; flex-direction: column; gap: 18px;
-            justify-content: center; align-items: center;
-            z-index: 9999; font-size: 18px; font-weight: 600;
-        }
-        #game-view #loading-screen .loader {
-            width: 52px; height: 52px;
-            border: 4px solid rgba(255,255,255,0.12);
-            border-top-color: #00A2FF; border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
     <script type="importmap">
         {
@@ -900,539 +215,57 @@
     </script>
 </head>
 <body>
+    <div id="game-container">
+        <!-- Pantalla de Carga 3D -->
+        <div id="loading-screen">CARGANDO MOTOR 3D...</div>
 
-    <!-- ====================================================================
-         LAUNCHER VIEW (default visible)
-         ==================================================================== -->
-    <div id="launcher-view">
-
-        <!-- LEFT SIDEBAR -->
-        <aside class="left-sidebar">
-            <div class="ls-logo">blox</div>
-            <button class="ls-icon active"><span class="ic">🏠</span><span>Inicio</span></button>
-            <button class="ls-icon"><span class="ic">👤</span><span>Avatar</span></button>
-            <button class="ls-icon"><span class="ic">👥</span><span>Equipo</span></button>
-            <button class="ls-icon"><span class="ic">⋯</span><span>Más</span></button>
-        </aside>
-
-        <!-- TOP BAR -->
-        <header class="launcher-top">
-            <div class="lt-title">BLOX <span class="tag">SELECT</span></div>
-            <div class="lt-search">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" id="launcher-search" placeholder="Buscar" />
-            </div>
-            <div class="lt-right">
-                <div class="lt-user">
-                    <div class="avatar">YO</div>
-                    <span class="name">Player_Clasic</span>
-                </div>
-                <button class="lt-icon" title="Ajustes">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5z"/></svg>
-                </button>
-                <button class="lt-icon" title="Notificaciones">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-                    <span class="badge">1</span>
-                </button>
-            </div>
-        </header>
-
-        <!-- MAIN CONTENT -->
-        <main class="main-content">
-
-            <h2 class="section-title">Amigos (204) <span class="chev">›</span></h2>
-            <div class="friends-section" data-section="friends">
-                <div class="destacada-col">
-                    <div class="destacada-label">Destacada:</div>
-                    <div class="ava">+</div>
-                    <div class="name">Avatar</div>
-                </div>
-                <div class="friends-list">
-                    <div class="friend-card online" style="--a1:#ff8855;--a2:#dd6633">
-                        <div class="ava">2L</div>
-                        <div class="name">2LC_Baran<span class="sub">🔵 Mini Ciudad...</span></div>
-                    </div>
-                    <div class="friend-card online" style="--a1:#3a3a3a;--a2:#1a1a1a">
-                        <div class="ava">PE</div>
-                        <div class="name">peteteee86</div>
-                    </div>
-                    <div class="friend-card" style="--a1:#5d2057;--a2:#3a1138">
-                        <div class="ava">TA</div>
-                        <div class="name">TAIGER2821</div>
-                    </div>
-                    <div class="friend-card online" style="--a1:#ffb84d;--a2:#dd8833">
-                        <div class="ava">AU</div>
-                        <div class="name">aura</div>
-                    </div>
-                    <div class="friend-card" style="--a1:#b8b8b8;--a2:#888">
-                        <div class="ava">AM</div>
-                        <div class="name">AmpUpStudios</div>
-                    </div>
-                    <div class="friend-card online" style="--a1:#997744;--a2:#665522">
-                        <div class="ava">RE</div>
-                        <div class="name">reinadelapitza</div>
-                    </div>
-                    <div class="friend-card" style="--a1:#774422;--a2:#442211">
-                        <div class="ava">SU</div>
-                        <div class="name">Suscribete123...</div>
-                    </div>
-                    <div class="friend-card online" style="--a1:#ffd700;--a2:#cc9900">
-                        <div class="ava">VI</div>
-                        <div class="name">Vicent123417</div>
-                    </div>
-                    <div class="friend-card" style="--a1:#4a90e2;--a2:#2c5fa3">
-                        <div class="ava">DI</div>
-                        <div class="name">Didac_356<span class="sub">🐱</span></div>
-                    </div>
-                    <div class="friend-card" style="--a1:#3a2c2c;--a2:#1a1111">
-                        <div class="ava">TU</div>
-                        <div class="name">tu_noconfi</div>
-                    </div>
-                    <div class="friend-card online" style="--a1:#444;--a2:#222">
-                        <div class="ava">JJ</div>
-                        <div class="name">Jjjhhhhgggfrrff</div>
-                    </div>
-                    <div class="friend-card" style="--a1:#5c2c1a;--a2:#2c1108">
-                        <div class="ava">JU</div>
-                        <div class="name">juligsa10</div>
-                    </div>
-                    <div class="friend-card" style="--a1:#ddaa66;--a2:#886633">
-                        <div class="ava">VO</div>
-                        <div class="name">Vonjati</div>
-                    </div>
-                    <div class="friend-card" style="--a1:#553377;--a2:#221133">
-                        <div class="ava">PU</div>
-                        <div class="name">Puquitof...</div>
-                    </div>
-                </div>
-            </div>
-
-            <h2 class="section-title">Recomendadas para ti</h2>
-            <div class="game-grid" data-section="recommended">
-                <div class="game-card" data-game="crossroads">
-                    <div class="thumb" style="background: linear-gradient(135deg, #b94545, #6e1a1a)">
-                        <span class="emoji">🐕</span>
-                        <span class="corner-tag">🐾 Anomalía</span>
-                        <span class="play-tag">▶ JUGABLE</span>
-                    </div>
-                    <div class="title">Hospital de Animales (Anomalía)</div>
-                    <div class="meta"><span class="pct">Valoración 95%</span></div>
-                </div>
-                <div class="game-card" data-game="obby">
-                    <div class="thumb" style="background: linear-gradient(135deg, #6dbc3a, #2e5818)">
-                        <span class="corner-tag" style="background: rgba(255,200,0,0.85); color:#000;">🌽 RANK 999</span>
-                        <span class="play-tag">▶ JUGABLE</span>
-                        <span style="position:absolute;bottom:8px;right:8px;font-size:32px;">🐔</span>
-                    </div>
-                    <div class="title">Granja de pollos 🐔</div>
-                    <div class="meta"><span class="pct">Valoración 99%</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #2c3a4a, #0a0e15)">
-                        <span class="emoji" style="font-size:54px">❄️</span>
-                    </div>
-                    <div class="title">Atardecer Frígido</div>
-                    <div class="meta"><span class="pct">Valoración 81%</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #4dd96e, #1a8842)">
-                        <div class="center-text">¡VENDER!</div>
-                    </div>
-                    <div class="title">CUANTIFICAR</div>
-                    <div class="meta"><span class="pct">Valoración 85%</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #ff8844, #aa4422)">
-                        <span class="emoji" style="font-size:54px">📚</span>
-                    </div>
-                    <div class="title">Limpiar la biblioteca 📖</div>
-                    <div class="meta"><span class="pct">Valoración 92%</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #ffd700, #cc8800)">
-                        <span class="emoji" style="font-size:60px">🦊</span>
-                    </div>
-                    <div class="title">✦ Pet Simulator 99! (Español)</div>
-                    <div class="meta"><span class="pct">Valoración 94%</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #ff6655, #cc2211)">
-                        <span class="emoji" style="font-size:48px">🛒</span>
-                    </div>
-                    <div class="title">Supermercado juntos</div>
-                    <div class="meta"><span class="pct">Valoración 93%</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #ffaa44, #cc6611)">
-                        <span class="emoji" style="font-size:58px">🐈</span>
-                    </div>
-                    <div class="title">Mi ejército de gatos 🐱</div>
-                    <div class="meta"><span class="pct">Valoración 81%</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #8b0a0a, #1a0000)">
-                        <span class="corner-tag">🔪 HORROR</span>
-                        <div class="center-text" style="font-size:38px;letter-spacing:3px;">THE<br>BUTCHERY</div>
-                    </div>
-                    <div class="title">The Butchery [HORROR] 🇪🇸</div>
-                    <div class="meta"><span class="pct">Valoración 87%</span></div>
-                </div>
-                <div class="game-card" data-game="tower">
-                    <div class="thumb" style="background: linear-gradient(135deg, #1a3a1a, #050a05)">
-                        <span class="corner-tag">🌲 HORROR</span>
-                        <span class="play-tag">▶ JUGABLE</span>
-                        <span style="position:absolute;bottom:8px;right:8px;font-size:46px;">🌙</span>
-                    </div>
-                    <div class="title">99 noches en el bosque 🪵</div>
-                    <div class="meta"><span class="pct">Valoración 90%</span></div>
-                </div>
-                <div class="game-card" data-game="soccer">
-                    <div class="thumb" style="background: linear-gradient(135deg, #ff3344, #881122)">
-                        <span class="ad">Anuncio</span>
-                        <span class="play-tag">▶ JUGABLE</span>
-                        <span class="emoji" style="font-size:60px">🎯</span>
-                    </div>
-                    <div class="title">🔫 RIVALES</div>
-                    <div class="meta"><span class="pct">Valoración 94%</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #44dd55, #118822)">
-                        <span class="emoji" style="font-size:54px">🟢</span>
-                    </div>
-                    <div class="title">Construye una defensa de slime 🛡️</div>
-                    <div class="meta"><span class="pct">Valoración 98%</span></div>
-                </div>
-            </div>
-
-            <h2 class="section-title">Continuar <span class="chev">›</span></h2>
-            <div class="game-grid cols-9" data-section="continue">
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #ffea00, #cc9900)">
-                        <span class="corner-tag">🍋 SELL</span>
-                        <span class="emoji" style="font-size:54px">🍋</span>
-                    </div>
-                    <div class="title">Vender Limones</div>
-                    <div class="meta"><span class="pct">Valoración 95%</span><span class="sep">·</span><span class="players">77,3 mil</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #4a3a5a, #1a0a2a)">
-                        <span class="corner-tag">👻 HORROR</span>
-                        <span class="emoji" style="font-size:54px">👁️</span>
-                    </div>
-                    <div class="title">Ophelia [HORROR]</div>
-                    <div class="meta"><span class="pct">Valoración 91%</span><span class="sep">·</span><span class="players">1,8 mil</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #ff66aa, #aa2266)">
-                        <span class="corner-tag">🎨 POPULAR</span>
-                        <span class="emoji" style="font-size:54px">🖌️</span>
-                    </div>
-                    <div class="title">¡Pinta y busca!</div>
-                    <div class="meta"><span class="pct">Valoración 72%</span><span class="sep">·</span><span class="players">49,4 mil</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #cc4422, #440e0e)">
-                        <span class="corner-tag">⚔️ PVP</span>
-                        <span class="emoji" style="font-size:50px">🗡️</span>
-                    </div>
-                    <div class="title">DUELOS DE ASESINOS CON...</div>
-                    <div class="meta"><span class="pct">Valoración 84%</span><span class="sep">·</span><span class="players">12,9 mil</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #44aaff, #115599)">
-                        <span class="corner-tag">🏎️ RACE</span>
-                        <span class="emoji" style="font-size:54px">🏁</span>
-                    </div>
-                    <div class="title">Clonar Tycoon de carrera</div>
-                    <div class="meta"><span class="pct">Valoración 89%</span><span class="sep">·</span><span class="players">200</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #ff9944, #cc5522)">
-                        <span class="corner-tag">🎉 FIESTA</span>
-                        <span class="emoji" style="font-size:54px">🎈</span>
-                    </div>
-                    <div class="title">Juntos [Juego de Fiesta]</div>
-                    <div class="meta"><span class="pct">Valoración 85%</span><span class="sep">·</span><span class="players">3,6 mil</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #2a3a4a, #050a15)">
-                        <span class="corner-tag">🔪 HORROR</span>
-                        <span class="emoji" style="font-size:54px">🏚️</span>
-                    </div>
-                    <div class="title">El Turno de la Morgue</div>
-                    <div class="meta"><span class="pct">Valoración 70%</span><span class="sep">·</span><span class="players">7,8 mil</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #ff4422, #881100)">
-                        <span class="corner-tag">🚒 RESCUE</span>
-                        <span class="emoji" style="font-size:54px">🚒</span>
-                    </div>
-                    <div class="title">[ES] Emergency Response: Libera...</div>
-                    <div class="meta"><span class="pct">Valoración 90%</span><span class="sep">·</span><span class="players">5,5 mil</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #2a1a2a, #050505)">
-                        <span class="corner-tag">👻 HORROR</span>
-                        <div class="center-text" style="font-size:36px;letter-spacing:4px;">ELMIRA</div>
-                    </div>
-                    <div class="title">ELMIRA [Horror]</div>
-                    <div class="meta"><span class="pct">Valoración 80%</span><span class="sep">·</span><span class="players">1,6 mil</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #ffd700, #cc8800)">
-                        <span class="corner-tag">⌨️ POPULAR</span>
-                        <div class="center-text" style="font-size:34px;">+1 Escape<br>de teclado</div>
-                    </div>
-                    <div class="title">W3R +1 Escape de teclado de clavo</div>
-                    <div class="meta"><span class="pct">Valoración 97%</span><span class="sep">·</span><span class="players">355 mil</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #66dd66, #228822)">
-                        <span class="corner-tag">🟢 POPULAR</span>
-                        <span class="emoji" style="font-size:54px">🟢</span>
-                    </div>
-                    <div class="title">RNG de slime realista</div>
-                    <div class="meta"><span class="pct">Valoración 97%</span><span class="sep">·</span><span class="players">8,7 mil</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #33aa55, #115522)">
-                        <span class="corner-tag">⚽ DEPORTE</span>
-                        <span class="emoji" style="font-size:54px">⚽</span>
-                    </div>
-                    <div class="title">Fútbol de calle realista</div>
-                    <div class="meta"><span class="pct">Valoración 84%</span><span class="sep">·</span><span class="players">21,7 mil</span></div>
-                </div>
-                <div class="game-card">
-                    <div class="thumb" style="background: linear-gradient(135deg, #ff66cc, #880066)">
-                        <span class="new-tag">NEW</span>
-                        <span class="emoji" style="font-size:54px">🧠</span>
-                    </div>
-                    <div class="title">Roba...Brain... [ESP]</div>
-                    <div class="meta"><span class="pct">Valoración 85%</span></div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- ====================================================================
-         GAME VIEW (oculto hasta que se clickee un juego ▶ JUGABLE)
-         ==================================================================== -->
-    <div id="game-view">
-        <div id="game-container">
-            <div id="loading-screen">
-                <div class="loader"></div>
-                <div>Cargando Blox…</div>
+        <!-- Pantalla de Login -->
+        <div id="auth-screen">
+            <div class="auth-box">
+                <h2>Classic World</h2>
+                <input type="email" id="email-input" placeholder="Correo electrónico">
+                <input type="password" id="pass-input" placeholder="Contraseña">
+                <button class="auth-btn" id="btn-login">Iniciar Sesión</button>
+                <button class="auth-btn secondary" id="btn-register">Crear Cuenta</button>
             </div>
         </div>
 
-        <div class="rb-topbar">
-            <button class="rb-hamburger" id="rb-hamburger" title="Menú">
-                <span></span><span></span><span></span>
-            </button>
-            <div class="rb-logo">blox</div>
-            <div class="rb-search">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" placeholder="Buscar juegos, gente, artículos..." />
-            </div>
-            <div class="rb-topbar-right">
-                <div class="rb-robux">
-                    <span id="money-amount">1,000</span><span class="r$">R$</span>
+        <!-- HUD del Juego -->
+        <div class="ui-overlay" id="game-hud" style="display: none;">
+            <!-- Chat -->
+            <div class="hud-chat glass-panel">
+                <div class="chat-messages" id="chat-messages">
+                    <div style="color:#aaa;">Sistema: Conectado al servidor.</div>
                 </div>
-                <button class="rb-icon-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-                    <span class="badge">3</span>
-                </button>
-                <button class="rb-icon-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-                    <span class="badge">7</span>
-                </button>
-                <div class="rb-profile">P</div>
-            </div>
-        </div>
-
-        <div class="rb-sidebar" id="rb-sidebar">
-            <div class="sb-title">Menú</div>
-            <button class="sb-item"><span class="ic">🏠</span>Inicio</button>
-            <button class="sb-item"><span class="ic">🧭</span>Descubrir</button>
-            <button class="sb-item"><span class="ic">🎮</span>Mis juegos</button>
-            <button class="sb-item"><span class="ic">🛒</span>Mercado</button>
-            <div class="sb-title" style="margin-top:16px;">Social</div>
-            <button class="sb-item"><span class="ic">👤</span>Avatar</button>
-            <button class="sb-item"><span class="ic">👥</span>Amigos</button>
-            <button class="sb-item"><span class="ic">💬</span>Mensajes</button>
-            <div class="sb-title" style="margin-top:16px;">Sistema</div>
-            <button class="sb-item"><span class="ic">⚙️</span>Ajustes</button>
-            <button class="sb-item"><span class="ic">❓</span>Ayuda</button>
-        </div>
-
-        <button class="back-home-btn" id="back-home-btn">← Volver a Blox</button>
-
-        <div class="game-ui">
-            <button class="rb-menu-btn" id="rb-menu-btn">☰ Menú</button>
-            <div class="game-menu" id="game-menu">
-                <button class="gm-item" data-act="resume"><span class="ic">▶</span>Reanudar</button>
-                <button class="gm-item" data-act="settings"><span class="ic">⚙</span>Ajustes del juego</button>
-                <button class="gm-item" data-act="help"><span class="ic">?</span>Ayuda</button>
-                <div class="gm-divider"></div>
-                <button class="gm-item danger" data-act="leave"><span class="ic">⏏</span>Salir del juego</button>
-            </div>
-
-            <div class="game-title">
-                <span id="game-title-text">Crossroads</span>
-                <span class="ping">48 ms</span>
-            </div>
-
-            <div class="players-panel">
-                <button class="players-toggle" id="players-toggle">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-                    Jugadores <span class="count" id="players-count">4</span>
-                </button>
-                <div class="players-list" id="players-list">
-                    <div class="pl-header">Conectados · 4</div>
-                    <div class="player-item"><span class="dot"></span><span class="name">Player_Clasic</span><span class="money" id="lb-money">1,000 R$</span></div>
-                    <div class="player-item"><span class="dot" style="background:#4cd964"></span><span class="name">Guest_2008</span><span class="money">50 R$</span></div>
-                    <div class="player-item"><span class="dot" style="background:#ff9500"></span><span class="name">xXBuilderXx</span><span class="money">12,400 R$</span></div>
-                    <div class="player-item"><span class="dot" style="background:#a64dff"></span><span class="name">NoobMaster</span><span class="money">3,250 R$</span></div>
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" placeholder="Presiona Enter para chatear..." maxlength="50">
                 </div>
             </div>
 
-            <button class="backpack-btn" id="backpack-btn" title="Mochila">
-                <div class="slot"></div><div class="slot filled"></div><div class="slot"></div>
-                <div class="slot"></div><div class="slot"></div><div class="slot filled"></div>
-                <div class="slot"></div><div class="slot"></div><div class="slot"></div>
-            </button>
+            <!-- Leaderboard -->
+            <div class="hud-leaderboard glass-panel">
+                <h3>Jugadores</h3>
+                <div class="lb-row"><span>Player_Clasic</span><span class="lb-money" id="money-amount">1000$</span></div>
+                <div class="lb-row"><span>Guest_2008</span><span class="lb-money">50$</span></div>
+            </div>
 
-            <div class="chat-container" id="chat-container">
-                <div class="chat-window">
-                    <div class="chat-header">
-                        <span>Chat</span>
-                        <button class="close-btn" id="chat-close" title="Cerrar chat">×</button>
-                    </div>
-                    <div class="chat-messages" id="chat-messages">
-                        <div><b style="color:#1e90ff;">[Sistema]:</b> Bienvenido a <b>Blox</b>.</div>
-                    </div>
-                    <input type="text" class="chat-input" id="chat-input" placeholder="Pulsa Enter para hablar..." maxlength="80" />
+            <!-- Bottom HUD -->
+            <div class="hud-bottom">
+                <div class="glass-panel" style="padding: 8px; display: flex; align-items: center;">
+                    <div class="health-bar"><div class="health-fill" id="health-fill"></div></div>
                 </div>
-                <button class="chat-toggle" id="chat-toggle">💬 Chat</button>
-            </div>
-
-            <div class="health-container">
-                <div class="health-bar-bg">
-                    <div class="health-bar" id="health-fill" style="width:100%"></div>
-                    <div class="health-label"><span id="health-label">100/100</span></div>
+                <div class="hotbar glass-panel">
+                    <div class="hotbar-slot">1</div>
+                    <div class="hotbar-slot">2</div>
+                    <div class="hotbar-slot">3</div>
+                    <div class="hotbar-slot">4</div>
+                    <div class="hotbar-slot">5</div>
                 </div>
-                <button class="respawn-btn" id="respawn-btn">↻ Respawn</button>
             </div>
-
-            <div class="help-hint" id="help-hint">
-                <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> moverse &nbsp;·&nbsp;
-                <kbd>Espacio</kbd> saltar &nbsp;·&nbsp;
-                <kbd>Click derecho + arrastrar</kbd> rotar cámara &nbsp;·&nbsp;
-                <kbd>Enter</kbd> chat &nbsp;·&nbsp;
-                <kbd>ESC</kbd> menú
-            </div>
-        </div>
-
-        <div class="minimap-container">
-            <canvas id="minimap" width="280" height="280"></canvas>
-            <div class="minimap-label">MAPA</div>
-            <div class="minimap-compass" id="minimap-coords">0, 0</div>
-        </div>
-
-        <div class="discover-overlay" id="discover-overlay">
-            <div class="discover-header">
-                <button class="discover-back" id="discover-back">← Volver al juego</button>
-                <h2>Descubrir</h2>
-                <div class="discover-spacer"></div>
-                <input type="text" class="discover-search" id="discover-search" placeholder="🔍 Buscar juegos..." />
-            </div>
-            <div class="discover-content" id="discover-content"></div>
         </div>
     </div>
 
-    <!-- ====================================================================
-         SCRIPTS
-         ==================================================================== -->
     <script type="module" src="gameHandler.js"></script>
     <script type="module" src="localScript.js"></script>
-    <script>
-        // === Launcher / Game toggle ===
-        function enterGame(gameId) {
-            document.body.classList.add('playing-mode');
-            const tryStart = () => {
-                if (window.LocalGameScript?.openGame) {
-                    window.LocalGameScript.openGame(gameId);
-                } else {
-                    setTimeout(tryStart, 100);
-                }
-            };
-            tryStart();
-        }
-
-        function exitToLauncher() {
-            document.body.classList.remove('playing-mode');
-            if (document.pointerLockElement) document.exitPointerLock();
-        }
-
-        // Click en una card ▶ JUGABLE → entrar al juego
-        document.addEventListener('click', (e) => {
-            if (document.body.classList.contains('playing-mode')) return;
-            const card = e.target.closest('.game-card[data-game]');
-            if (!card) return;
-            enterGame(card.dataset.game);
-        });
-
-        // Botón "← Volver a Blox" en el juego
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('#back-home-btn')) exitToLauncher();
-        });
-
-        // Buscador del launcher: filtra juegos y amigos
-        const lsearch = document.getElementById('launcher-search');
-        if (lsearch) {
-            lsearch.addEventListener('input', () => {
-                const q = lsearch.value.trim().toLowerCase();
-                document.querySelectorAll('#launcher-view .game-card').forEach(card => {
-                    const t = (card.querySelector('.title')?.textContent || '').toLowerCase();
-                    card.style.display = !q || t.includes(q) ? '' : 'none';
-                });
-                // Filtrar amigos
-                document.querySelectorAll('#launcher-view .friend-card').forEach(card => {
-                    const t = (card.querySelector('.name')?.textContent || '').toLowerCase();
-                    card.style.display = !q || t.includes(q) ? '' : 'none';
-                });
-                // Si no hay coincidencias en una sección, ocultar la sección
-                document.querySelectorAll('#launcher-view .section').forEach(sec => {
-                    const visible = Array.from(sec.querySelectorAll('.game-card, .friend-card'))
-                        .some(c => c.style.display !== 'none');
-                    sec.style.display = visible ? '' : 'none';
-                });
-                // Versión simplificada para esta estructura (no .section)
-                document.querySelectorAll('#launcher-view .friends-section').forEach(sec => {
-                    const visible = Array.from(sec.querySelectorAll('.friend-card, .destacada-col'))
-                        .some(c => c.style.display !== 'none');
-                    sec.style.display = visible ? '' : 'none';
-                });
-                document.querySelectorAll('#launcher-view .game-grid').forEach(sec => {
-                    const visible = Array.from(sec.querySelectorAll('.game-card'))
-                        .some(c => c.style.display !== 'none');
-                    sec.style.display = visible ? '' : 'none';
-                });
-                document.querySelectorAll('#launcher-view .section-title').forEach(t => {
-                    let sec;
-                    if (t.nextElementSibling?.classList.contains('friends-section')) sec = t.nextElementSibling;
-                    else if (t.nextElementSibling?.classList.contains('game-grid')) sec = t.nextElementSibling;
-                    if (sec) t.style.display = sec.style.display === 'none' ? 'none' : '';
-                });
-            });
-        }
-
-        // Abrir Discover desde el sidebar del juego
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.sb-item') && e.target.textContent.includes('Descubrir')) {
-                // El localScript.js ya lo maneja — no hace falta nada aquí
-            }
-        });
-    </script>
 </body>
 </html>
