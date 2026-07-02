@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bloxyy - Sword Fight</title>
     <style>
         :root {
@@ -10,86 +10,74 @@
             --border-glass: rgba(255, 255, 255, 0.15);
             --primary: #00a2ff;
             --danger: #ff4757;
-            --success: #2ed573;
             --red-team: #ff3333;
             --blue-team: #3366ff;
         }
 
         * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-        body { margin: 0; overflow: hidden; background-color: #87CEEB; }
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; touch-action: none; }
         #game-container { width: 100vw; height: 100vh; position: relative; }
         canvas { display: block; }
 
-        /* === PANTALLAS GENERALES === */
+        /* === PANTALLAS === */
         .screen-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; justify-content: center; align-items: center;
             z-index: 1000; transition: opacity 0.5s ease;
             background: linear-gradient(135deg, #1e1e2f 0%, #0f0f1a 100%);
         }
-
-        /* === LOGIN === */
         .auth-box {
-            background: var(--bg-glass); backdrop-filter: blur(16px);
-            border: 1px solid var(--border-glass); padding: 40px; border-radius: 16px;
-            width: 350px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); color: white;
+            background: var(--bg-glass); backdrop-filter: blur(16px); border: 1px solid var(--border-glass);
+            padding: 40px; border-radius: 16px; width: 90%; max-width: 350px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); color: white;
         }
-        .auth-box h2 { margin: 0 0 20px 0; text-align: center; font-weight: 300; letter-spacing: 1px; text-transform: uppercase; }
+        .auth-box h2 { margin: 0 0 20px 0; text-align: center; font-weight: 300; text-transform: uppercase; }
         .auth-box input {
             width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; outline: none;
         }
-        .auth-box input:focus { border-color: var(--primary); }
-        .auth-btn {
-            width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 8px;
-            color: white; font-weight: bold; cursor: pointer; margin-bottom: 10px;
-        }
+        .auth-btn { width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
         .auth-btn.secondary { background: rgba(255,255,255,0.1); }
         .auth-error { color: var(--danger); font-size: 12px; text-align: center; min-height: 15px; }
 
-        /* === HOME SCREEN === */
-        .home-box {
-            text-align: center; color: white;
-            background: var(--bg-glass); padding: 50px 70px; border-radius: 20px;
-            border: 1px solid var(--border-glass); backdrop-filter: blur(16px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-        }
-        .home-box h1 { margin: 0 0 10px 0; font-size: 42px; text-transform: uppercase; letter-spacing: 2px; }
-        .home-box p { color: #aaa; margin-bottom: 40px; font-size: 16px; }
-        .play-btn {
-            padding: 15px 40px; font-size: 20px; font-weight: bold; text-transform: uppercase;
-            background: linear-gradient(90deg, var(--blue-team), var(--primary)); border: none; color: white;
-            border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 5px 15px rgba(0,162,255,0.4);
-        }
-        .play-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,162,255,0.6); }
+        .home-box { text-align: center; color: white; background: var(--bg-glass); padding: 50px 70px; border-radius: 20px; border: 1px solid var(--border-glass); backdrop-filter: blur(16px); }
+        .home-box h1 { margin: 0 0 10px 0; font-size: 32px; text-transform: uppercase; }
+        .play-btn { padding: 15px 40px; font-size: 18px; font-weight: bold; text-transform: uppercase; background: linear-gradient(90deg, var(--blue-team), var(--primary)); border: none; color: white; border-radius: 8px; cursor: pointer; }
 
-        /* === HUD DEL JUEGO === */
+        /* === HUD === */
         .ui-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-        .glass-panel {
-            background: var(--bg-glass); backdrop-filter: blur(10px); border: 1px solid var(--border-glass);
-            border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); color: white;
-        }
+        .glass-panel { background: var(--bg-glass); backdrop-filter: blur(10px); border: 1px solid var(--border-glass); border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); color: white; }
         
-        .hud-chat { position: absolute; top: 20px; left: 20px; width: 350px; height: 200px; display: flex; flex-direction: column; overflow: hidden; }
-        .chat-messages { flex-grow: 1; padding: 10px; overflow-y: auto; font-size: 13px; }
-        .chat-input-container { border-top: 1px solid var(--border-glass); padding: 8px; pointer-events: auto; }
-        .chat-input-container input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 6px; outline: none; }
+        .hud-chat { position: absolute; top: 20px; left: 20px; width: 250px; height: 150px; display: flex; flex-direction: column; overflow: hidden; }
+        .chat-messages { flex-grow: 1; padding: 10px; overflow-y: auto; font-size: 12px; }
+        .chat-input-container { border-top: 1px solid var(--border-glass); padding: 5px; pointer-events: auto; }
+        .chat-input-container input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 5px; border-radius: 4px; outline: none; }
 
-        .hud-leaderboard { position: absolute; top: 20px; right: 20px; padding: 15px; min-width: 200px; }
-        .hud-leaderboard h3 { margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #aaa; border-bottom: 1px solid var(--border-glass); padding-bottom: 5px; }
-        .lb-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+        .hud-leaderboard { position: absolute; top: 20px; right: 20px; padding: 10px; min-width: 150px; }
+        .hud-leaderboard h3 { margin: 0 0 5px 0; font-size: 12px; text-transform: uppercase; color: #aaa; border-bottom: 1px solid var(--border-glass); padding-bottom: 5px; }
+        .lb-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
         
-        .hud-bottom { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 20px; }
-        .health-bar { width: 200px; height: 12px; background: rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden; }
-        .health-fill { height: 100%; width: 100%; background: var(--danger); transition: width 0.3s; }
-        .hotbar { display: flex; gap: 8px; padding: 8px; }
-        .hotbar-slot { width: 45px; height: 45px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #888; }
-        
+        /* === CONTROLES MÓVILES === */
+        .mobile-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 200px; pointer-events: none; z-index: 20; }
+        .joystick-base {
+            position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px;
+            background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
+            pointer-events: auto; touch-action: none;
+        }
+        .joystick-thumb {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%;
+        }
+        .attack-btn {
+            position: absolute; bottom: 40px; right: 30px; width: 90px; height: 90px;
+            background: rgba(255, 71, 87, 0.6); border: 2px solid rgba(255,255,255,0.4); border-radius: 50%;
+            color: white; font-size: 30px; display: flex; justify-content: center; align-items: center;
+            pointer-events: auto; user-select: none; touch-action: none;
+        }
+        .attack-btn:active { background: rgba(255, 71, 87, 0.9); }
+
         .chat-bubble-3d { background: rgba(255, 255, 255, 0.95); padding: 6px 12px; border-radius: 12px; color: #000; font-size: 13px; font-weight: 500; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transform: translateY(-20px); pointer-events: none; opacity: 0; transition: opacity 0.3s; }
         
         #loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: white; display: flex; justify-content: center; align-items: center; z-index: 500; font-size: 24px; }
-        
-        .crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; }
     </style>
     <script type="importmap">
         {
@@ -107,7 +95,7 @@
     <div id="game-container">
         <div id="loading-screen">CARGANDO MOTOR 3D...</div>
 
-        <!-- Pantalla de Login -->
+        <!-- Login -->
         <div id="auth-screen" class="screen-overlay">
             <div class="auth-box">
                 <h2>Bloxyy</h2>
@@ -119,7 +107,7 @@
             </div>
         </div>
 
-        <!-- Pantalla de Inicio (SIN AMIGOS, SOLO JUGAR) -->
+        <!-- Home -->
         <div id="home-screen" class="screen-overlay" style="display: none;">
             <div class="home-box">
                 <h1>Sword Fight</h1>
@@ -131,22 +119,21 @@
         <!-- HUD del Juego -->
         <div class="ui-overlay" id="game-hud" style="display: none;">
             <div class="hud-chat glass-panel">
-                <div class="chat-messages" id="chat-messages"><div style="color:#aaa;">Sistema: Has entrado a la arena.</div></div>
-                <div class="chat-input-container"><input type="text" id="chat-input" placeholder="Presiona Enter para chatear..." maxlength="50"></div>
+                <div class="chat-messages" id="chat-messages"><div style="color:#aaa;">Sistema: ¡A luchar!</div></div>
+                <div class="chat-input-container"><input type="text" id="chat-input" placeholder="Enter para chatear..." maxlength="50"></div>
             </div>
             <div class="hud-leaderboard glass-panel">
-                <h3>Arena Scores</h3>
-                <div class="lb-row" style="color: var(--blue-team)"><span>Tu (Blue)</span><span>0</span></div>
+                <h3>Arena</h3>
+                <div class="lb-row" style="color: var(--blue-team)"><span>Tú (Blue)</span><span>0</span></div>
                 <div class="lb-row" style="color: var(--red-team)"><span>Enemigo (Red)</span><span>0</span></div>
             </div>
-            <div class="crosshair"></div>
-            <div class="hud-bottom">
-                <div class="glass-panel" style="padding: 8px; display: flex; align-items: center;">
-                    <div class="health-bar"><div class="health-fill" id="health-fill"></div></div>
+            
+            <!-- Controles Móviles -->
+            <div class="mobile-controls" id="mobile-controls">
+                <div class="joystick-base" id="joystick-base">
+                    <div class="joystick-thumb" id="joystick-thumb"></div>
                 </div>
-                <div class="hotbar glass-panel">
-                    <div class="hotbar-slot">⚔️<br>1</div>
-                </div>
+                <div class="attack-btn" id="attack-btn">⚔️</div>
             </div>
         </div>
     </div>
