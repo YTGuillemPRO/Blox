@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
-import { getDatabase, ref, set, onValue, remove, onDisconnect } from 'firebase/database';
+import { getDatabase, ref, update, onValue, onDisconnect, remove } from 'firebase/database';
 
 class LocalGameScript {
     constructor() {
@@ -27,7 +27,7 @@ class LocalGameScript {
         const app = initializeApp(firebaseConfig);
         getAnalytics(app);
         this.auth = getAuth(app);
-        this.db = getDatabase(app); // Base de datos en tiempo real
+        this.db = getDatabase(app);
 
         const authScreen = document.getElementById('auth-screen');
         const homeScreen = document.getElementById('home-screen');
@@ -82,19 +82,16 @@ class LocalGameScript {
         
         const playerName = user.email.split('@')[0];
         this.myId = user.uid;
-        const playerRef = ref(this.db, 'players/' + this.myId);
+        this.playerRef = ref(this.db, 'players/' + this.myId);
         
-        // Eliminarme de la DB si me desconecto
-        onDisconnect(playerRef).remove();
+        onDisconnect(this.playerRef).remove();
         
-        // Guardar mis datos iniciales
-        set(playerRef, {
+        update(this.playerRef, {
             name: playerName,
             x: -35, y: 1, z: 0, ry: 0,
             chat: ""
         });
 
-        // Escuchar a TODOS los jugadores
         const playersRef = ref(this.db, 'players');
         onValue(playersRef, (snapshot) => {
             const data = snapshot.val();
@@ -109,7 +106,6 @@ class LocalGameScript {
                 }
             }
             
-            // Eliminar jugadores que se hayan ido
             for (const id in window.GameHandler.otherPlayers) {
                 if (!currentIds.includes(id)) {
                     window.GameHandler.removeRemotePlayer(id);
@@ -117,15 +113,13 @@ class LocalGameScript {
             }
         });
 
-        // Enviar mi posición 10 veces por segundo
+        // Actualizar mi posición 10 veces por segundo usando 'update' para no borrar el chat
         setInterval(() => {
             if (window.GameHandler.player) {
                 const p = window.GameHandler.player;
-                set(playerRef, {
-                    name: playerName,
+                update(this.playerRef, {
                     x: p.position.x, y: p.position.y, z: p.position.z,
-                    ry: p.rotation.y,
-                    chat: this.lastChatMsg || ""
+                    ry: p.rotation.y
                 });
             }
         }, 100);
@@ -163,9 +157,14 @@ class LocalGameScript {
                         window.GameHandler.showChatBubble(text);
                     }
                     
-                    // Guardar mensaje para enviarlo a Firebase
-                    this.lastChatMsg = text;
-                    setTimeout(() => { this.lastChatMsg = ""; }, 4000);
+                    // Enviar chat a Firebase usando update
+                    if (this.playerRef) {
+                        update(this.playerRef, { chat: text });
+                        // Borrar el chat de Firebase después de 4 segundos para que no se quede ahí para siempre
+                        setTimeout(() => {
+                            update(this.playerRef, { chat: "" });
+                        }, 4000);
+                    }
                     
                     chatInput.value = '';
                     chatInput.blur(); 
