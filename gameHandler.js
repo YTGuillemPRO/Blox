@@ -44,7 +44,7 @@ class GameHandler {
         this.cameraAngle = 0;
         this.isDragging = false;
         this.lastTouch = { x: 0, y: 0 };
-        this.audioCtx = null; // Para el sonido
+        this.audioCtx = null; 
 
         window.addEventListener('keydown', (e) => this.keys[e.key.toLowerCase()] = true);
         window.addEventListener('keyup', (e) => this.keys[e.key.toLowerCase()] = false);
@@ -63,13 +63,11 @@ class GameHandler {
     }
 
     setupArena() {
-        // Baseplate 100x100
         const baseGeo = new THREE.BoxGeometry(100, 1, 100);
         const canvas = document.createElement('canvas');
         canvas.width = 512; canvas.height = 512;
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#4a6b2a'; 
-        ctx.fillRect(0, 0, 512, 512);
+        ctx.fillStyle = '#4a6b2a'; ctx.fillRect(0, 0, 512, 512);
         ctx.strokeStyle = '#3a5520'; ctx.lineWidth = 2;
         for (let i = 0; i <= 512; i += 64) {
             ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 512); ctx.stroke();
@@ -81,18 +79,22 @@ class GameHandler {
         this.baseplate = new THREE.Mesh(baseGeo, new THREE.MeshStandardMaterial({ map: baseTexture }));
         this.baseplate.position.y = -0.5; this.baseplate.receiveShadow = true; this.scene.add(this.baseplate);
 
-        // Río central
         const river = new THREE.Mesh(new THREE.BoxGeometry(10, 0.1, 100), new THREE.MeshStandardMaterial({ color: 0x0044aa }));
         river.position.y = 0; river.receiveShadow = true; this.scene.add(river);
 
-        // Castillos
-        this.createCastle(-35, 0, 0x0033cc, 0x888888); // Azul
-        this.createCastle(35, 0, 0xcc0000, 0x888888);  // Rojo
+        this.createCastle(-35, 0, 0x0033cc);
+        this.createCastle(35, 0, 0xcc0000);  
     }
 
-    createCastle(x, z, teamColor, stoneColor) {
+    createCastle(x, z, teamColor) {
         const castle = new THREE.Group();
+        
+        // Colores extraídos del código MTL de Tinkercad
+        const stoneColor = 0xBFC7CC; // Kd 0.749 0.780 0.8
+        const redColor = 0xE91D2D;   // Kd 0.913 0.113 0.176
+        
         const stoneMat = new THREE.MeshStandardMaterial({ color: stoneColor });
+        const redMat = new THREE.MeshStandardMaterial({ color: redColor });
         const teamMat = new THREE.MeshStandardMaterial({ color: teamColor });
 
         const towerGeo = new THREE.BoxGeometry(8, 16, 8);
@@ -101,7 +103,8 @@ class GameHandler {
             const tower = new THREE.Mesh(towerGeo, stoneMat);
             tower.position.set(p[0], 8, p[1]); tower.castShadow = true; tower.receiveShadow = true;
             castle.add(tower);
-            const roof = new THREE.Mesh(new THREE.ConeGeometry(6, 6, 4), teamMat);
+            // Techo rojo de Tinkercad
+            const roof = new THREE.Mesh(new THREE.ConeGeometry(6, 6, 4), redMat);
             roof.position.set(p[0], 19, p[1]); roof.castShadow = true;
             castle.add(roof);
         });
@@ -112,8 +115,7 @@ class GameHandler {
         const wall3 = new THREE.Mesh(new THREE.BoxGeometry(2, 8, 16), stoneMat); wall3.position.set(-12, 4, 0); castle.add(wall3);
         const wall4 = new THREE.Mesh(new THREE.BoxGeometry(2, 8, 16), stoneMat); wall4.position.set(12, 4, 0); castle.add(wall4);
 
-        // Patio interior
-        const floor = new THREE.Mesh(new THREE.BoxGeometry(20, 1, 20), new THREE.MeshStandardMaterial({ color: teamColor }));
+        const floor = new THREE.Mesh(new THREE.BoxGeometry(20, 1, 20), teamMat);
         floor.position.y = 0.5; floor.receiveShadow = true; castle.add(floor);
 
         castle.position.set(x, 0, z);
@@ -122,7 +124,7 @@ class GameHandler {
 
     startGame() {
         if(this.player) return;
-        this.initAudio(); // Iniciar sonido al pulsar jugar
+        this.initAudio(); 
         this.createPlayer();
         this.createEnemy();
         this.setupCombat();
@@ -136,25 +138,20 @@ class GameHandler {
 
     createR6Character(colorTorso, colorHead, colorArm, colorLeg) {
         const group = new THREE.Group();
-        
         const torso = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 1), new THREE.MeshStandardMaterial({ color: colorTorso }));
         torso.position.y = 3; torso.castShadow = true; group.add(torso);
         const head = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: colorHead }));
         head.position.y = 4.6; head.castShadow = true; group.add(head);
-
         const armGeo = new THREE.BoxGeometry(1, 2, 1);
         const leftArm = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: colorArm }));
         leftArm.position.set(-1.5, 3, 0); leftArm.castShadow = true; group.add(leftArm);
-
         const rightArm = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: colorArm }));
         rightArm.position.set(1.5, 3, 0); rightArm.castShadow = true; group.add(rightArm);
-
         const legGeo = new THREE.BoxGeometry(1, 2, 1);
         const leftLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({ color: colorLeg }));
         leftLeg.position.set(-0.5, 1, 0); leftLeg.castShadow = true; group.add(leftLeg);
         const rightLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({ color: colorLeg }));
         rightLeg.position.set(0.5, 1, 0); rightLeg.castShadow = true; group.add(rightLeg);
-
         group.rightArmRef = rightArm; 
         return group;
     }
@@ -195,7 +192,6 @@ class GameHandler {
         const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for(let i=0; i<data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 2);
-        
         const source = ctx.createBufferSource();
         source.buffer = buffer;
         const filter = ctx.createBiquadFilter();
@@ -206,16 +202,13 @@ class GameHandler {
         const gain = ctx.createGain();
         gain.gain.setValueAtTime(0.8, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-        
         source.connect(filter).connect(gain).connect(ctx.destination);
         source.start();
     }
 
     setupCombat() {
         this.isAttacking = false;
-        const attackAction = () => {
-            if(!this.isAttacking) this.attack();
-        };
+        const attackAction = () => { if(!this.isAttacking) this.attack(); };
         window.addEventListener('mousedown', (e) => { if(e.button === 0) attackAction(); });
         const btn = document.getElementById('attack-btn');
         btn.addEventListener('touchstart', (e) => { e.preventDefault(); attackAction(); });
@@ -224,7 +217,7 @@ class GameHandler {
 
     attack() {
         this.isAttacking = true;
-        this.playSwordSound(); // Sonido reproducido
+        this.playSwordSound(); 
         let progress = 0;
         const attackInterval = setInterval(() => {
             progress += 0.15;
@@ -244,33 +237,45 @@ class GameHandler {
         this.chatTimeout = setTimeout(() => { this.chatLabel.element.style.opacity = '0'; }, 4000);
     }
 
+    // LÓGICA DE MOVIMIENTO CORREGIDA (SIN INVERTIR)
     updatePlayerMovement() {
         if(!this.player) return;
         const speed = 0.3;
-        let moveX = 0, moveZ = 0;
+        
+        // Vectores de dirección de la cámara
+        const forward = new THREE.Vector3();
+        this.camera.getWorldDirection(forward);
+        forward.y = 0; 
+        forward.normalize(); // Hacia adelante (W)
+        
+        const right = new THREE.Vector3();
+        right.crossVectors(forward, this.camera.up).normalize(); // Hacia la derecha (D)
+        
+        let moveDir = new THREE.Vector3(0, 0, 0);
 
-        if(this.keys['w']) moveZ -= 1;
-        if(this.keys['s']) moveZ += 1;
-        if(this.keys['a']) moveX -= 1;
-        if(this.keys['d']) moveX += 1;
-        if(this.joystick.active) { moveX = this.joystick.x; moveZ = this.joystick.y; }
+        // Entrada Teclado
+        if(this.keys['w']) moveDir.add(forward);
+        if(this.keys['s']) moveDir.sub(forward);
+        if(this.keys['d']) moveDir.add(right);
+        if(this.keys['a']) moveDir.sub(right);
 
-        const len = Math.sqrt(moveX*moveX + moveZ*moveZ);
-        if(len > 0) {
-            moveX /= len; moveZ /= len;
-            const cosY = Math.cos(this.cameraAngle);
-            const sinY = Math.sin(this.cameraAngle);
-            const worldX = moveX * cosY - moveZ * sinY;
-            const worldZ = moveX * sinY + moveZ * cosY;
-
-            this.player.position.x += worldX * speed;
-            this.player.position.z += worldZ * speed;
-            this.player.rotation.y = Math.atan2(worldX, worldZ);
+        // Entrada Joystick (Y negativo es hacia arriba/arriba)
+        if(this.joystick.active) {
+            moveDir.add(forward.clone().multiplyScalar(-this.joystick.y));
+            moveDir.add(right.clone().multiplyScalar(this.joystick.x));
         }
 
+        if(moveDir.lengthSq() > 0) {
+            moveDir.normalize().multiplyScalar(speed);
+            this.player.position.add(moveDir);
+            this.player.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+        }
+
+        // Limitar mapa
         this.player.position.x = Math.max(-49, Math.min(49, this.player.position.x));
         this.player.position.z = Math.max(-49, Math.min(49, this.player.position.z));
 
+        // Cámara sigue al jugador basada en el ángulo arrastrado
         const targetCamX = this.player.position.x - Math.sin(this.cameraAngle) * 15;
         const targetCamZ = this.player.position.z - Math.cos(this.cameraAngle) * 15;
         const targetCamY = this.player.position.y + 10;
