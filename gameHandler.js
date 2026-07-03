@@ -4,7 +4,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 class GameHandler {
     constructor() {
         this.scene = null;
-        this.otherPlayers = {}; // Almacena los meshes de otros jugadores
+        this.otherPlayers = {}; 
         this.init();
         this.setupArena();
         this.animate();
@@ -96,25 +96,49 @@ class GameHandler {
         const stoneMat = new THREE.MeshStandardMaterial({ color: stoneColor });
         const redMat = new THREE.MeshStandardMaterial({ color: redColor });
         const teamMat = new THREE.MeshStandardMaterial({ color: teamColor });
+        const woodMat = new THREE.MeshStandardMaterial({ color: 0x8B5A2B });
 
-        const towerGeo = new THREE.BoxGeometry(8, 16, 8);
-        const positions = [[-12, -12], [12, -12], [-12, 12], [12, 12]];
+        // Torreones
+        const towerGeo = new THREE.BoxGeometry(8, 20, 8);
+        const positions = [[-15, -15], [15, -15], [-15, 15], [15, 15]];
         positions.forEach(p => {
             const tower = new THREE.Mesh(towerGeo, stoneMat);
-            tower.position.set(p[0], 8, p[1]); tower.castShadow = true; tower.receiveShadow = true;
+            tower.position.set(p[0], 10, p[1]); tower.castShadow = true; tower.receiveShadow = true;
             castle.add(tower);
-            const roof = new THREE.Mesh(new THREE.ConeGeometry(6, 6, 4), redMat);
-            roof.position.set(p[0], 19, p[1]); roof.castShadow = true;
+            
+            // Almenas (Dientes de arriba)
+            for(let i = -3; i <= 3; i += 2) {
+                const cren = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), stoneMat);
+                cren.position.set(p[0] + i, 21, p[1] + 3.5); castle.add(cren);
+                const cren2 = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), stoneMat);
+                cren2.position.set(p[0] + 3.5, 21, p[1] + i); castle.add(cren2);
+                const cren3 = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), stoneMat);
+                cren3.position.set(p[0] + i, 21, p[1] - 3.5); castle.add(cren3);
+                const cren4 = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), stoneMat);
+                cren4.position.set(p[0] - 3.5, 21, p[1] + i); castle.add(cren4);
+            }
+
+            // Techo rojo de Tinkercad
+            const roof = new THREE.Mesh(new THREE.ConeGeometry(6, 8, 4), redMat);
+            roof.position.set(p[0], 25, p[1]); roof.castShadow = true;
             castle.add(roof);
+
+            // Banderas
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 6), woodMat);
+            pole.position.set(p[0], 32, p[1]); castle.add(pole);
+            const flag = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 0.1), teamMat);
+            flag.position.set(p[0] + 2, 33, p[1]); castle.add(flag);
         });
 
-        const wallGeo = new THREE.BoxGeometry(16, 8, 2);
-        const wall1 = new THREE.Mesh(wallGeo, stoneMat); wall1.position.set(0, 4, -12); castle.add(wall1);
-        const wall2 = new THREE.Mesh(wallGeo, stoneMat); wall2.position.set(0, 4, 12); castle.add(wall2);
-        const wall3 = new THREE.Mesh(new THREE.BoxGeometry(2, 8, 16), stoneMat); wall3.position.set(-12, 4, 0); castle.add(wall3);
-        const wall4 = new THREE.Mesh(new THREE.BoxGeometry(2, 8, 16), stoneMat); wall4.position.set(12, 4, 0); castle.add(wall4);
+        // Muros
+        const wallGeo = new THREE.BoxGeometry(22, 10, 2);
+        const wall1 = new THREE.Mesh(wallGeo, stoneMat); wall1.position.set(0, 5, -15); castle.add(wall1);
+        const wall2 = new THREE.Mesh(wallGeo, stoneMat); wall2.position.set(0, 5, 15); castle.add(wall2);
+        const wall3 = new THREE.Mesh(new THREE.BoxGeometry(2, 10, 22), stoneMat); wall3.position.set(-15, 5, 0); castle.add(wall3);
+        const wall4 = new THREE.Mesh(new THREE.BoxGeometry(2, 10, 22), stoneMat); wall4.position.set(15, 5, 0); castle.add(wall4);
 
-        const floor = new THREE.Mesh(new THREE.BoxGeometry(20, 1, 20), teamMat);
+        // Patio
+        const floor = new THREE.Mesh(new THREE.BoxGeometry(28, 1, 28), teamMat);
         floor.position.y = 0.5; floor.receiveShadow = true; castle.add(floor);
 
         castle.position.set(x, 0, z);
@@ -158,13 +182,14 @@ class GameHandler {
         this.player.position.set(-35, 1, 0);
         this.scene.add(this.player);
 
+        // Espada Mejorada
         this.sword = new THREE.Group();
-        const handle = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), new THREE.MeshStandardMaterial({ color: 0x111111 }));
-        handle.position.y = -0.3;
-        const guard = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.2), new THREE.MeshStandardMaterial({ color: 0x444444 }));
+        const handle = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1, 0.3), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+        handle.position.y = -0.5;
+        const guard = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.3, 0.3), new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.8, roughness: 0.2 })); // Guarda dorada
         guard.position.y = 0.1;
-        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.4, 3.5, 0.1), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.1 }));
-        blade.position.y = 1.9;
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.5, 5, 0.1), new THREE.MeshStandardMaterial({ color: 0xFFFFFF, metalness: 0.9, roughness: 0.1 })); // Hoja blanca brillante
+        blade.position.y = 2.8;
         this.sword.add(handle, guard, blade);
         this.sword.position.set(0, -0.8, 0);
         this.sword.rotation.x = Math.PI;
@@ -234,17 +259,14 @@ class GameHandler {
         this.chatTimeout = setTimeout(() => { this.chatLabel.element.style.opacity = '0'; }, 4000);
     }
 
-    // --- SISTEMA MULTIJUGADOR ---
     updateRemotePlayer(id, data) {
         if (!this.otherPlayers[id]) {
-            // Crear nuevo jugador remoto
             const newPlayer = this.createR6Character(0xcc0000, 0xffcc00, 0xffcc00, 0x330000);
             const chatDiv = document.createElement('div');
             chatDiv.className = 'chat-bubble-3d';
             const label = new CSS2DObject(chatDiv);
             label.position.set(0, 3, 0);
             newPlayer.add(label);
-            
             this.scene.add(newPlayer);
             this.otherPlayers[id] = { mesh: newPlayer, label: label, targetPos: new THREE.Vector3(data.x, 1, data.z), lastPos: new THREE.Vector3(data.x, 1, data.z) };
         }
@@ -254,7 +276,7 @@ class GameHandler {
         p.targetPos.set(data.x, 1, data.z);
         p.mesh.rotation.y = data.ry;
         
-        if (data.chat) {
+        if (data.chat && data.chat !== "") {
             p.label.element.innerHTML = data.chat;
             p.label.element.style.opacity = '1';
             clearTimeout(p.chatTimeout);
@@ -306,7 +328,6 @@ class GameHandler {
         this.camera.position.lerp(new THREE.Vector3(targetCamX, targetCamY, targetCamZ), 0.1);
         this.camera.lookAt(this.player.position.x, this.player.position.y + 3, this.player.position.z);
 
-        // Interpolar otros jugadores para suavizar su movimiento
         for (const id in this.otherPlayers) {
             const p = this.otherPlayers[id];
             p.mesh.position.lerp(p.targetPos, 0.2);
