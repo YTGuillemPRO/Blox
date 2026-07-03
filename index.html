@@ -43,7 +43,7 @@
         .btn-register:hover { background: #ff4757; color: white; box-shadow: 0 0 20px rgba(255, 71, 87, 0.4); }
         .auth-error { color: #ff4757; font-size: 14px; text-align: center; min-height: 20px; margin-top: 10px; }
 
-        /* === LOBBY WEB CLÁSICA MEJORADA === */
+        /* === LOBBY === */
         #home-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e5e5e5; color: #333; z-index: 900; display: none; flex-direction: column; }
         .web-header { background: linear-gradient(to bottom, #00A2FF, #0077cc); padding: 0 20px; display: flex; align-items: center; color: white; font-weight: bold; border-bottom: 3px solid #005580; height: 60px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .web-logo { font-size: 32px; font-weight: 900; letter-spacing: -2px; text-shadow: 2px 2px 0 #005580; margin-right: 30px; }
@@ -52,26 +52,24 @@
         .web-nav span { padding: 6px 12px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); }
         .web-tix { background: #00aa00; border: 1px solid #007700; text-shadow: 1px 1px 0 rgba(0,0,0,0.2); }
         .web-robux { background: #ffcc00; color: #000; border: 1px solid #aa8800; }
-        
         .web-body { display: flex; flex: 1; overflow: hidden; }
         .web-sidebar { width: 200px; background: linear-gradient(to right, #d4d4d4, #e0e0e0); padding: 20px; border-right: 2px solid #b0b0b0; }
         .web-sidebar h3 { margin: 0 0 15px 0; font-size: 16px; color: #333; border-bottom: 2px solid #999; padding-bottom: 5px; }
         .web-sidebar ul { list-style: none; padding: 0; margin: 0; font-size: 14px; }
         .web-sidebar li { padding: 10px 5px; cursor: pointer; color: #005580; border-bottom: 1px dashed #c0c0c0; }
         .web-sidebar li:hover { background: #c8c8c8; color: #000; }
-        
         .web-content { flex: 1; padding: 40px; overflow-y: auto; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; }
         .web-content h2 { color: #333; margin: 0 0 30px 0; font-size: 28px; border-bottom: 4px solid #00A2FF; padding-bottom: 5px; width: 100%; max-width: 800px; text-align: left; }
         .game-grid { display: flex; gap: 25px; flex-wrap: wrap; width: 100%; max-width: 800px; }
         .game-card { background: white; border: 1px solid #aaa; width: 220px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.15); border-radius: 6px; overflow: hidden; }
         .game-card:hover { transform: translateY(-5px); border-color: #00A2FF; box-shadow: 0 8px 15px rgba(0,0,0,0.25); }
-        .game-thumb { width: 100%; height: 140px; background: #cc0000; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 24px; border-bottom: 3px solid rgba(0,0,0,0.2); text-shadow: 2px 2px 0 rgba(0,0,0,0.3); }
+        .game-thumb { width: 100%; height: 140px; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 24px; border-bottom: 3px solid rgba(0,0,0,0.2); text-shadow: 2px 2px 0 rgba(0,0,0,0.3); }
         .game-info { padding: 15px; text-align: center; background: linear-gradient(to bottom, #fff, #f0f0f0); }
         .game-info strong { display: block; color: #333; font-size: 18px; margin-bottom: 8px; }
         .game-info .rating { color: #ff9900; font-size: 16px; }
         .game-info .players { font-size: 12px; color: #666; margin-top: 6px; font-weight: bold; }
 
-        /* === HUD 3D === */
+        /* === HUD 3D (shared) === */
         .ui-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         .glass-panel { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: white; }
         .hud-chat { position: absolute; top: 20px; left: 20px; width: 250px; height: 150px; display: flex; flex-direction: column; overflow: hidden; }
@@ -81,27 +79,115 @@
         .hud-leaderboard { position: absolute; top: 20px; right: 20px; padding: 10px; min-width: 150px; }
         .hud-leaderboard h3 { margin: 0 0 5px 0; font-size: 12px; text-transform: uppercase; color: #aaa; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; }
         .lb-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
-        
+
         .mobile-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 200px; pointer-events: none; z-index: 20; }
         .joystick-base { position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; pointer-events: auto; touch-action: none; }
         .joystick-thumb { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; }
         .attack-btn { position: absolute; bottom: 40px; right: 30px; width: 90px; height: 90px; background: rgba(255, 71, 87, 0.6); border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; color: white; font-size: 30px; display: flex; justify-content: center; align-items: center; pointer-events: auto; user-select: none; touch-action: none; }
         .attack-btn:active { background: rgba(255, 71, 87, 0.9); }
         .chat-bubble-3d { background: rgba(255, 255, 255, 0.95); padding: 6px 12px; border-radius: 12px; color: #000; font-size: 13px; font-weight: 500; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transform: translateY(-20px); pointer-events: none; opacity: 0; transition: opacity 0.3s; }
-        
+
         #loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: white; display: flex; justify-content: center; align-items: center; z-index: 500; font-size: 24px; }
+
+        /* === HUD: SWORDS === */
+        .hud-swords-leaderboard { padding: 12px; min-width: 180px; }
+        .hud-swords-leaderboard .lb-row .pts { font-weight: bold; }
+
+        /* === HUD: SELL LEMONS === */
+        .hud-lemon-money {
+            position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.7); padding: 10px 24px; border-radius: 22px;
+            color: #4cd964; font: 800 18px 'Arial'; letter-spacing: 1px;
+            border: 2px solid rgba(76,217,100,0.4); box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .hud-lemon-info {
+            position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.5); padding: 6px 16px; border-radius: 18px;
+            color: white; font: 600 14px 'Arial';
+        }
+        .hud-lemon-sell-btn {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #4cd964, #00b06f);
+            color: white; border: 2px solid white;
+            padding: 14px 28px; border-radius: 30px;
+            font: 800 16px 'Arial'; cursor: pointer;
+            box-shadow: 0 6px 24px rgba(76,217,100,0.5);
+            display: none; pointer-events: auto;
+            animation: pulse-btn 1.5s infinite;
+        }
+        @keyframes pulse-btn {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.06); }
+        }
+        .hud-lemon-shop-btn {
+            position: absolute; bottom: 30px; right: 30px;
+            background: linear-gradient(135deg, #ffcc00, #ffa500);
+            color: #1a1a1a; border: 2px solid white;
+            padding: 12px 24px; border-radius: 28px;
+            font: 800 14px 'Arial'; cursor: pointer;
+            box-shadow: 0 4px 16px rgba(255,200,0,0.5);
+            display: none; pointer-events: auto;
+        }
+        .lemon-shop-modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75); display: none;
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        .lemon-shop-modal.open { display: flex; }
+        .lemon-shop-box {
+            background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
+            border: 2px solid #4cd964; border-radius: 16px;
+            padding: 28px; max-width: 420px; width: 90%;
+            color: white; max-height: 80vh; overflow-y: auto;
+        }
+        .lemon-shop-box h2 { margin: 0 0 6px; color: #4cd964; text-align: center; }
+        .lemon-shop-box .shop-money { text-align: center; font-size: 18px; margin-bottom: 20px; color: #ffd700; font-weight: 800; }
+        .lemon-shop-box .upgrade {
+            background: rgba(255,255,255,0.06); padding: 14px;
+            border-radius: 10px; margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .lemon-shop-box .upgrade strong { display: block; font-size: 15px; margin-bottom: 4px; }
+        .lemon-shop-box .upgrade p { margin: 4px 0 8px; color: #aaa; font-size: 13px; }
+        .lemon-shop-box .upgrade-btn {
+            background: linear-gradient(135deg, #4cd964, #00b06f);
+            color: white; border: none; padding: 8px 18px;
+            border-radius: 8px; font: 800 13px 'Arial';
+            cursor: pointer; transition: 0.2s;
+        }
+        .lemon-shop-box .upgrade-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(76,217,100,0.5); }
+        .lemon-shop-box .upgrade-btn.owned { background: #555; cursor: default; }
+        .lemon-shop-box .upgrade-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .lemon-shop-box .close-shop {
+            width: 100%; background: #333; color: white;
+            border: none; padding: 10px; border-radius: 8px;
+            margin-top: 10px; cursor: pointer; font-weight: 700;
+        }
+        .lemon-shop-box .close-shop:hover { background: #444; }
+
+        /* Toast de cobro */
+        .lemon-toast {
+            position: fixed; top: 120px; left: 50%; transform: translateX(-50%);
+            background: rgba(76,217,100,0.95); color: white;
+            padding: 12px 28px; border-radius: 24px;
+            font: 800 18px 'Arial';
+            box-shadow: 0 8px 28px rgba(76,217,100,0.5);
+            z-index: 200; pointer-events: none; opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .lemon-toast.show { opacity: 1; transform: translateX(-50%) translateY(20px); }
     </style>
     <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
-                "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
-                "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
-                "firebase/analytics": "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js",
-                "firebase/database": "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
-            }
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+            "firebase/analytics": "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js",
+            "firebase/database": "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
         }
+    }
     </script>
 </head>
 <body>
@@ -138,12 +224,20 @@
                 <div class="web-content">
                     <h2>Juegos</h2>
                     <div class="game-grid">
-                        <div class="game-card" id="btn-play">
+                        <div class="game-card" id="btn-play-swords" data-game="swords">
                             <div class="game-thumb" style="background: linear-gradient(45deg, #cc0000, #0000cc);">⚔️ RED vs BLUE</div>
                             <div class="game-info">
                                 <strong>Sword Fight</strong>
                                 <span class="rating">★★★★★</span>
                                 <div class="players">100% - Multijugador</div>
+                            </div>
+                        </div>
+                        <div class="game-card" id="btn-play-lemons" data-game="sellLemons">
+                            <div class="game-thumb" style="background: linear-gradient(45deg, #ffe44d, #6dbc3a);">🍋 Vender Limones</div>
+                            <div class="game-info">
+                                <strong>Sell Lemons</strong>
+                                <span class="rating">★★★★★</span>
+                                <div class="players">92% - Simulador</div>
                             </div>
                         </div>
                     </div>
@@ -153,20 +247,23 @@
 
         <div class="ui-overlay" id="game-hud" style="display: none;">
             <div class="hud-chat glass-panel">
-                <div class="chat-messages" id="chat-messages"><div style="color:#aaa;">Sistema: ¡A luchar!</div></div>
+                <div class="chat-messages" id="chat-messages"><div style="color:#aaa;">Sistema: ¡A jugar!</div></div>
                 <div class="chat-input-container"><input type="text" id="chat-input" placeholder="Enter para chatear..." maxlength="50"></div>
             </div>
-            <div class="hud-leaderboard glass-panel">
-                <h3>Arena</h3>
-                <div class="lb-row" style="color: #3366ff"><span>Tú (Blue)</span><span>0</span></div>
-                <div class="lb-row" style="color: #ff3333"><span>Enemigo (Red)</span><span>0</span></div>
+            <div class="hud-leaderboard glass-panel hud-swords-leaderboard" id="hud-leaderboard">
+                <h3 id="hud-leaderboard-title">Arena</h3>
+                <div class="lb-row" style="color: #3366ff"><span>Tú (Blue)</span><span class="pts" id="lb-blue">0</span></div>
+                <div class="lb-row" style="color: #ff3333"><span>Enemigo (Red)</span><span class="pts" id="lb-red">0</span></div>
             </div>
             <div class="mobile-controls">
                 <div class="joystick-base" id="joystick-base"><div class="joystick-thumb" id="joystick-thumb"></div></div>
                 <div class="attack-btn" id="attack-btn">⚔️</div>
             </div>
+            <div id="game-specific-hud"></div>
         </div>
     </div>
+
+    <button id="btn-back-lobby" style="display:none; position:fixed; top:14px; right:14px; z-index:300; background:rgba(0,0,0,0.7); color:white; border:2px solid white; padding:8px 16px; border-radius:22px; font:700 13px Arial; cursor:pointer;">← Lobby</button>
 
     <script type="module" src="gameHandler.js"></script>
     <script type="module" src="localScript.js"></script>
