@@ -38,7 +38,7 @@ class LocalGameScript {
                 authScreen.style.display = 'none';
                 gameHud.style.display = 'none';
                 homeScreen.style.display = 'flex';
-                userDisplay.innerText = user.email.split('@')[0]; // Mostrar nombre en la web
+                userDisplay.innerText = user.email.split('@')[0]; 
             } else {
                 authScreen.style.display = 'flex';
                 homeScreen.style.display = 'none';
@@ -167,7 +167,6 @@ class LocalGameScript {
     }
 
     startGameLoops() {
-        // Simulación de daño para testear la barra de vida
         setTimeout(() => { this.playerHealth = 75; this.updateUI(); }, 5000);
     }
 }
