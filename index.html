@@ -5,18 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Blox - Web</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        * { box-sizing: border-box; font-family: 'Arial', 'Helvetica', sans-serif; }
         body { margin: 0; overflow: hidden; background-color: #87CEEB; touch-action: none; }
         #game-container { width: 100vw; height: 100vh; position: relative; }
         canvas { display: block; }
 
-        /* === PANTALLA LOGIN EXTREMA === */
+        /* === LOGIN COOL === */
         #auth-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #050505; display: flex; justify-content: center; align-items: center; z-index: 1000;
-            overflow: hidden;
+            background: #050505; display: flex; justify-content: center; align-items: center; z-index: 1000; overflow: hidden;
         }
-        /* Fondo animado cyberpunk */
         #auth-screen::before {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: 
@@ -25,7 +23,6 @@
             animation: pulse 5s infinite alternate;
         }
         @keyframes pulse { 0% { opacity: 0.5; } 100% { opacity: 1; } }
-        
         .auth-box {
             position: relative; z-index: 2; background: rgba(15, 15, 25, 0.7); backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1); padding: 50px; border-radius: 20px; width: 90%; max-width: 400px;
@@ -47,29 +44,32 @@
         .auth-error { color: #ff4757; font-size: 14px; text-align: center; min-height: 20px; margin-top: 10px; }
 
         /* === INTERFAZ WEB CLÁSICA BLOX === */
-        #home-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #f0f0f0; color: #333; z-index: 900; display: none; flex-direction: column; }
-        .web-header { background: #00A2FF; padding: 5px 15px; display: flex; align-items: center; color: white; font-weight: bold; border-bottom: 2px solid #0077cc; }
-        .web-logo { font-size: 24px; font-weight: 900; letter-spacing: -1px; text-shadow: 1px 1px 0 #005580; }
-        .web-search { margin-left: 20px; padding: 4px; border: 1px solid #0077cc; width: 200px; }
+        #home-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0e0e0; color: #333; z-index: 900; display: none; flex-direction: column; }
+        .web-header { background: #00A2FF; padding: 8px 20px; display: flex; align-items: center; color: white; font-weight: bold; border-bottom: 2px solid #0077cc; height: 50px; }
+        .web-logo { font-size: 28px; font-weight: 900; letter-spacing: -1px; text-shadow: 1px 1px 0 #005580; margin-right: 20px; }
+        .web-search { padding: 6px 10px; border: 1px solid #0077cc; width: 300px; border-radius: 3px; font-size: 14px; }
         .web-nav { margin-left: auto; display: flex; gap: 15px; align-items: center; font-size: 14px; }
-        .web-nav span { background: #008ecc; padding: 4px 8px; border: 1px solid #006699; border-radius: 3px; cursor: pointer; }
+        .web-nav span { padding: 4px 10px; border-radius: 3px; cursor: pointer; }
+        .web-tix { background: #00aa00; border: 1px solid #007700; }
+        .web-robux { background: #ffcc00; color: #000; border: 1px solid #aa8800; }
         
         .web-body { display: flex; flex: 1; overflow: hidden; }
-        .web-sidebar { width: 180px; background: #e0e0e0; padding: 15px; border-right: 1px solid #ccc; }
-        .web-sidebar h3 { margin: 0 0 10px 0; font-size: 14px; color: #444; border-bottom: 1px solid #aaa; padding-bottom: 5px; }
-        .web-sidebar ul { list-style: none; padding: 0; margin: 0; font-size: 13px; }
-        .web-sidebar li { padding: 5px 0; cursor: pointer; color: #005580; }
+        .web-sidebar { width: 180px; background: #d4d4d4; padding: 20px; border-right: 1px solid #aaa; }
+        .web-sidebar h3 { margin: 0 0 15px 0; font-size: 16px; color: #333; border-bottom: 1px solid #888; padding-bottom: 5px; }
+        .web-sidebar ul { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+        .web-sidebar li { padding: 8px 0; cursor: pointer; color: #005580; }
         .web-sidebar li:hover { text-decoration: underline; }
         
-        .web-content { flex: 1; padding: 20px; overflow-y: auto; background: #f9f9f9; }
-        .web-content h2 { color: #333; margin-top: 0; border-bottom: 2px solid #00A2FF; display: inline-block; padding-right: 20px; }
-        .game-grid { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
-        .game-card { background: white; border: 1px solid #ccc; width: 160px; cursor: pointer; transition: transform 0.1s; }
-        .game-card:hover { transform: translateY(-2px); border-color: #00A2FF; }
-        .game-thumb { width: 100%; height: 100px; background: #cc0000; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 18px; border-bottom: 1px solid #aaa; }
-        .game-info { padding: 8px; text-align: center; }
-        .game-info strong { display: block; color: #333; font-size: 14px; margin-bottom: 4px; }
-        .game-info .rating { color: #ff9900; font-size: 12px; }
+        .web-content { flex: 1; padding: 30px; overflow-y: auto; background: #f9f9f9; display: flex; flex-direction: column; align-items: center; }
+        .web-content h2 { color: #333; margin: 0 0 30px 0; font-size: 24px; border-bottom: 3px solid #00A2FF; padding-bottom: 5px; width: 100%; max-width: 800px; text-align: left; }
+        .game-grid { display: flex; gap: 20px; flex-wrap: wrap; width: 100%; max-width: 800px; }
+        .game-card { background: white; border: 1px solid #ccc; width: 200px; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .game-card:hover { transform: translateY(-3px); border-color: #00A2FF; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .game-thumb { width: 100%; height: 130px; background: #cc0000; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 22px; border-bottom: 2px solid #aaa; }
+        .game-info { padding: 12px; text-align: center; }
+        .game-info strong { display: block; color: #333; font-size: 16px; margin-bottom: 6px; }
+        .game-info .rating { color: #ff9900; font-size: 14px; }
+        .game-info .players { font-size: 12px; color: #888; margin-top: 4px; }
 
         /* === HUD 3D === */
         .ui-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
@@ -98,7 +98,8 @@
                 "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
                 "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
                 "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
-                "firebase/analytics": "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js"
+                "firebase/analytics": "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js",
+                "firebase/database": "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
             }
         }
     </script>
@@ -107,7 +108,7 @@
     <div id="game-container">
         <div id="loading-screen">CARGANDO BLOX...</div>
 
-        <!-- LOGIN COOL -->
+        <!-- LOGIN -->
         <div id="auth-screen">
             <div class="auth-box">
                 <h2>Blox</h2>
@@ -124,16 +125,16 @@
         <div id="home-screen">
             <div class="web-header">
                 <div class="web-logo">BLOX</div>
-                <input type="text" class="web-search" placeholder="Buscar...">
+                <input type="text" class="web-search" placeholder="Buscar personas, lugares...">
                 <div class="web-nav">
                     <span id="user-display">Usuario</span>
-                    <span style="background: #00aa00; border-color: #007700;">0 Tix</span>
-                    <span style="background: #ffcc00; color: #000; border-color: #aa8800;">0 Robux</span>
+                    <span class="web-tix">0 Tix</span>
+                    <span class="web-robux">0 Robux</span>
                 </div>
             </div>
             <div class="web-body">
                 <div class="web-sidebar">
-                    <h3>Navegación</h3>
+                    <h3>Navegacion</h3>
                     <ul><li>Inicio</li><li>Mi Personaje</li><li>Amigos (0)</li><li>Mensajes (0)</li><li>Lugares</li><li>Foros</li></ul>
                 </div>
                 <div class="web-content">
@@ -141,7 +142,11 @@
                     <div class="game-grid">
                         <div class="game-card" id="btn-play">
                             <div class="game-thumb" style="background: linear-gradient(45deg, #cc0000, #0000cc);">⚔️ RED vs BLUE</div>
-                            <div class="game-info"><strong>Sword Fight</strong><span class="rating">★★★★★</span><div style="font-size: 10px; color: #888;">100% - 1 Jugador</div></div>
+                            <div class="game-info">
+                                <strong>Sword Fight</strong>
+                                <span class="rating">★★★★★</span>
+                                <div class="players">100% - Multijugador</div>
+                            </div>
                         </div>
                     </div>
                 </div>
