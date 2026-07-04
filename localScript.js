@@ -2,7 +2,6 @@ import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, update, onValue, onDisconnect, remove, get } from 'firebase/database';
-import { SellLemonsGame } from './selllemons.js';
 
 class LocalGameScript {
     constructor() {
@@ -81,8 +80,6 @@ class LocalGameScript {
             homeScreen.style.display = 'none';
             gameHud.style.display = 'block';
             window.GameHandler.startGameMode('lemons');
-            window.GameHandler.activeGame = new SellLemonsGame(window.GameHandler);
-            window.GameHandler.activeGame.build();
         });
     }
 
@@ -181,6 +178,7 @@ class LocalGameScript {
             if (this.playerRef) remove(this.playerRef);
             pauseMenu.style.display = 'none';
             window.GameHandler.isPaused = false;
+            window.GameHandler.cleanupGame(); // Limpiar la escena 3D al salir
             document.getElementById('game-hud').style.display = 'none';
             document.getElementById('home-screen').style.display = 'flex';
         });
@@ -286,7 +284,6 @@ class LocalGameScript {
         gameContainer.addEventListener('touchstart', (e) => {
             if (window.GameHandler.isPaused) return;
             for (let touch of e.changedTouches) {
-                // Ignorar si toca un botón
                 if (touch.target.tagName === 'BUTTON' || touch.target.tagName === 'INPUT') continue;
 
                 if (touch.clientX < window.innerWidth / 2 && joyTouchId === null) {
@@ -296,13 +293,11 @@ class LocalGameScript {
                     base.style.display = 'block';
                     base.style.left = (joyStartX - 60) + 'px';
                     base.style.top = (joyStartY - 60) + 'px';
-                    thumb.style.left = '50%';
-                    thumb.style.top = '50%';
+                    thumb.style.left = '50%'; thumb.style.top = '50%';
                     window.GameHandler.joystick.active = true;
                 } else if (touch.clientX >= window.innerWidth / 2 && camTouchId === null) {
                     camTouchId = touch.identifier;
-                    camLastX = touch.clientX;
-                    camLastY = touch.clientY;
+                    camLastX = touch.clientX; camLastY = touch.clientY;
                 }
             }
         }, { passive: false });
@@ -327,37 +322,26 @@ class LocalGameScript {
                     let dy = touch.clientY - camLastY;
                     window.GameHandler.cameraAngle -= dx * 0.005;
                     window.GameHandler.cameraPitch = Math.max(-0.2, Math.min(0.8, window.GameHandler.cameraPitch + dy * 0.005));
-                    camLastX = touch.clientX;
-                    camLastY = touch.clientY;
+                    camLastX = touch.clientX; camLastY = touch.clientY;
                 }
             }
         }, { passive: false });
 
-        gameContainer.addEventListener('touchend', (e) => {
+        const handleTouchEnd = (e) => {
             for (let touch of e.changedTouches) {
                 if (touch.identifier === joyTouchId) {
                     joyTouchId = null;
                     window.GameHandler.joystick.active = false;
-                    window.GameHandler.joystick.x = 0;
-                    window.GameHandler.joystick.y = 0;
+                    window.GameHandler.joystick.x = 0; window.GameHandler.joystick.y = 0;
                     base.style.display = 'none';
                 } else if (touch.identifier === camTouchId) {
                     camTouchId = null;
                 }
             }
-        });
+        };
 
-        gameContainer.addEventListener('touchcancel', (e) => {
-            for (let touch of e.changedTouches) {
-                if (touch.identifier === joyTouchId) {
-                    joyTouchId = null;
-                    window.GameHandler.joystick.active = false;
-                    base.style.display = 'none';
-                } else if (touch.identifier === camTouchId) {
-                    camTouchId = null;
-                }
-            }
-        });
+        gameContainer.addEventListener('touchend', handleTouchEnd);
+        gameContainer.addEventListener('touchcancel', handleTouchEnd);
     }
 
     startGameLoops() {
