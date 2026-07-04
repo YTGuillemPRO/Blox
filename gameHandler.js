@@ -5,9 +5,9 @@ class GameHandler {
     constructor() {
         this.scene = null;
         this.otherPlayers = {}; 
-        this.isPaused = false; // Estado de pausa
+        this.isPaused = false;
+        this.currentGameMode = null;
         this.init();
-        this.setupArena();
         this.animate();
     }
 
@@ -45,6 +45,7 @@ class GameHandler {
         this.keys = {};
         this.joystick = { x: 0, y: 0, active: false };
         this.cameraAngle = 0;
+        this.cameraPitch = 0.3; // Inclinación vertical
         this.isDragging = false;
         this.lastTouch = { x: 0, y: 0 };
         this.audioCtx = null;
@@ -56,7 +57,12 @@ class GameHandler {
             if(e.button === 2 && !this.isPaused) { this.isDragging = true; this.lastTouch.x = e.clientX; this.lastTouch.y = e.clientY; }
         });
         window.addEventListener('mousemove', (e) => {
-            if(this.isDragging) { this.cameraAngle -= (e.clientX - this.lastTouch.x) * 0.005; this.lastTouch.x = e.clientX; }
+            if(this.isDragging) {
+                this.cameraAngle -= (e.clientX - this.lastTouch.x) * 0.005;
+                this.cameraPitch = Math.max(-0.2, Math.min(0.8, this.cameraPitch + (e.clientY - this.lastTouch.y) * 0.005));
+                this.lastTouch.x = e.clientX;
+                this.lastTouch.y = e.clientY;
+            }
         });
         window.addEventListener('mouseup', () => this.isDragging = false);
         this.renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
@@ -140,23 +146,103 @@ class GameHandler {
         this.scene.add(castle);
     }
 
-    startGame() {
-        if(this.player) return;
+    startGameMode(mode) {
+        this.cleanupGame();
+        this.currentGameMode = mode;
         this.initAudio(); 
-        this.createPlayer();
-        this.createEnemy();
-        this.setupCombat();
+
+        if (mode === 'pvp') {
+            this.setupArena();
+            this.createPlayer(0x0033cc, 0xffcc00, 0xffcc00, 0x001a33);
+            this.player.position.set(-35, 1, 0);
+            this.createEnemy();
+            this.setupCombat();
+            document.getElementById('attack-btn').style.display = 'flex';
+        } else if (mode === 'lemons') {
+            // El script SellLemonsGame gestionará la creación del mundo y el jugador
+            document.getElementById('attack-btn').style.display = 'none';
+        }
+    }
+
+    cleanupGame() {
+        // Limpiar escena
+        while(this.scene.children.length > 0) {
+            this.scene.remove(this.scene.children[0]);
+        }
+        this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        dirLight.position.set(50, 100, 50);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        dirLight.shadow.camera.left = -80; dirLight.shadow.camera.right = 80;
+        dirLight.shadow.camera.top = 80; dirLight.shadow.camera.bottom = -80;
+        this.scene.add(dirLight);
+
+        this.player = null;
+        this.enemy = null;
+        this.otherPlayers = {};
+        const hud = document.getElementById('game-specific-hud');
+        if(hud) hud.innerHTML = '';
     }
 
     resetPlayer() {
         if(this.player) {
-            this.player.position.set(-35, 1, 0);
+            if(this.currentGameMode === 'pvp') this.player.position.set(-35, 1, 0);
+            if(this.currentGameMode === 'lemons') this.player.position.set(0, 1, 0);
             this.player.rotation.y = 0;
         }
     }
 
     initAudio() {
         if(!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    createPlayer(colorTorso, colorHead, colorArm, colorLeg) {
+        this.player = new THREE.Group();
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 1), new THREE.MeshStandardMaterial({ color: colorTorso }));
+        torso.position.y = 3; torso.castShadow = true; this.player.add(torso);
+        const head = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: colorHead }));
+        head.position.y = 4.6; head.castShadow = true; this.player.add(head);
+        const armGeo = new THREE.BoxGeometry(1, 2, 1);
+        const leftArm = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: colorArm }));
+        leftArm.position.set(-1.5, 3, 0); leftArm.castShadow = true; this.player.add(leftArm);
+        const rightArm = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: colorArm }));
+        rightArm.position.set(1.5, 3, 0); rightArm.castShadow = true; this.player.add(rightArm);
+        const legGeo = new THREE.BoxGeometry(1, 2, 1);
+        const leftLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({ color: colorLeg }));
+        leftLeg.position.set(-0.5, 1, 0); leftLeg.castShadow = true; this.player.add(leftLeg);
+        const rightLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({ color: colorLeg }));
+        rightLeg.position.set(0.5, 1, 0); rightLeg.castShadow = true; this.player.add(rightLeg);
+        this.player.rightArmRef = rightArm; 
+        
+        if(this.currentGameMode === 'pvp') {
+            this.sword = new THREE.Group();
+            const handle = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1, 0.3), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+            handle.position.y = -0.5;
+            const guard = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.3, 0.3), new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.8, roughness: 0.2 }));
+            guard.position.y = 0.1;
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(0.5, 5, 0.1), new THREE.MeshStandardMaterial({ color: 0xFFFFFF, metalness: 0.9, roughness: 0.1 }));
+            blade.position.y = 2.8;
+            this.sword.add(handle, guard, blade);
+            this.sword.position.set(0, -0.8, 0);
+            this.sword.rotation.x = Math.PI;
+            this.player.rightArmRef.add(this.sword);
+        }
+
+        const chatDiv = document.createElement('div');
+        chatDiv.className = 'chat-bubble-3d';
+        this.chatLabel = new CSS2DObject(chatDiv);
+        this.chatLabel.position.set(0, 3, 0);
+        this.player.add(this.chatLabel);
+
+        this.scene.add(this.player);
+    }
+
+    createEnemy() {
+        this.enemy = this.createR6Character(0xcc0000, 0xffcc00, 0xffcc00, 0x330000);
+        this.enemy.position.set(35, 1, 0);
+        this.scene.add(this.enemy);
     }
 
     createR6Character(colorTorso, colorHead, colorArm, colorLeg) {
@@ -177,36 +263,6 @@ class GameHandler {
         rightLeg.position.set(0.5, 1, 0); rightLeg.castShadow = true; group.add(rightLeg);
         group.rightArmRef = rightArm; 
         return group;
-    }
-
-    createPlayer() {
-        this.player = this.createR6Character(0x0033cc, 0xffcc00, 0xffcc00, 0x001a33);
-        this.player.position.set(-35, 1, 0);
-        this.scene.add(this.player);
-
-        this.sword = new THREE.Group();
-        const handle = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1, 0.3), new THREE.MeshStandardMaterial({ color: 0x333333 }));
-        handle.position.y = -0.5;
-        const guard = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.3, 0.3), new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.8, roughness: 0.2 }));
-        guard.position.y = 0.1;
-        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.5, 5, 0.1), new THREE.MeshStandardMaterial({ color: 0xFFFFFF, metalness: 0.9, roughness: 0.1 }));
-        blade.position.y = 2.8;
-        this.sword.add(handle, guard, blade);
-        this.sword.position.set(0, -0.8, 0);
-        this.sword.rotation.x = Math.PI;
-        this.player.rightArmRef.add(this.sword);
-
-        const chatDiv = document.createElement('div');
-        chatDiv.className = 'chat-bubble-3d';
-        this.chatLabel = new CSS2DObject(chatDiv);
-        this.chatLabel.position.set(0, 3, 0);
-        this.player.add(this.chatLabel);
-    }
-
-    createEnemy() {
-        this.enemy = this.createR6Character(0xcc0000, 0xffcc00, 0xffcc00, 0x330000);
-        this.enemy.position.set(35, 1, 0);
-        this.scene.add(this.enemy);
     }
 
     playSwordSound() {
@@ -232,7 +288,7 @@ class GameHandler {
     setupCombat() {
         this.isAttacking = false;
         const attackAction = () => { if(!this.isAttacking && !this.isPaused) this.attack(); };
-        window.addEventListener('mousedown', (e) => { if(e.button === 0) attackAction(); });
+        window.addEventListener('mousedown', (e) => { if(e.button === 0 && this.currentGameMode === 'pvp') attackAction(); });
         const btn = document.getElementById('attack-btn');
         btn.addEventListener('touchstart', (e) => { e.preventDefault(); attackAction(); });
         btn.addEventListener('click', attackAction);
@@ -294,7 +350,7 @@ class GameHandler {
     }
 
     updatePlayerMovement() {
-        if(!this.player || this.isPaused) return; // No moverse si está en pausa
+        if(!this.player || this.isPaused) return; 
         const speed = 0.3;
         const forward = new THREE.Vector3();
         this.camera.getWorldDirection(forward);
@@ -323,9 +379,10 @@ class GameHandler {
         this.player.position.x = Math.max(-49, Math.min(49, this.player.position.x));
         this.player.position.z = Math.max(-49, Math.min(49, this.player.position.z));
 
-        const targetCamX = this.player.position.x - Math.sin(this.cameraAngle) * 15;
-        const targetCamZ = this.player.position.z - Math.cos(this.cameraAngle) * 15;
-        const targetCamY = this.player.position.y + 10;
+        const camDist = 15;
+        const targetCamX = this.player.position.x - Math.sin(this.cameraAngle) * camDist * Math.cos(this.cameraPitch);
+        const targetCamZ = this.player.position.z - Math.cos(this.cameraAngle) * camDist * Math.cos(this.cameraPitch);
+        const targetCamY = this.player.position.y + 10 + Math.sin(this.cameraPitch) * camDist;
         
         this.camera.position.lerp(new THREE.Vector3(targetCamX, targetCamY, targetCamZ), 0.1);
         this.camera.lookAt(this.player.position.x, this.player.position.y + 3, this.player.position.z);
@@ -346,6 +403,7 @@ class GameHandler {
     animate() {
         requestAnimationFrame(() => this.animate());
         this.updatePlayerMovement();
+        if (this.currentGameMode === 'lemons' && this.activeGame) this.activeGame.update();
         this.renderer.render(this.scene, this.camera);
         this.labelRenderer.render(this.scene, this.camera);
     }
