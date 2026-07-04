@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, update, onValue, onDisconnect, remove, get } from 'firebase/database';
+import { SellLemonsGame } from './selllemons.js';
 
 class LocalGameScript {
     constructor() {
@@ -69,11 +70,19 @@ class LocalGameScript {
             });
         });
 
-        document.getElementById('btn-play').addEventListener('click', () => {
+        document.getElementById('btn-play-pvp').addEventListener('click', () => {
             homeScreen.style.display = 'none';
             gameHud.style.display = 'block';
-            window.GameHandler.startGame();
+            window.GameHandler.startGameMode('pvp');
             this.setupMultiplayer();
+        });
+
+        document.getElementById('btn-play-lemons').addEventListener('click', () => {
+            homeScreen.style.display = 'none';
+            gameHud.style.display = 'block';
+            window.GameHandler.startGameMode('lemons');
+            window.GameHandler.activeGame = new SellLemonsGame(window.GameHandler);
+            window.GameHandler.activeGame.build();
         });
     }
 
@@ -83,9 +92,8 @@ class LocalGameScript {
         
         const playerName = user.email.split('@')[0];
         this.myId = user.uid;
-        this.myFriends = []; // Cargar mis amigos
+        this.myFriends = [];
         
-        // Cargar lista de amigos
         const friendsRef = ref(this.db, 'users/' + this.myId + '/friends');
         get(friendsRef).then((snapshot) => {
             if (snapshot.exists()) this.myFriends = Object.keys(snapshot.val());
@@ -125,7 +133,7 @@ class LocalGameScript {
                 }
             }
             
-            this.updatePlayersListUI(); // Actualizar menú de pausa
+            this.updatePlayersListUI();
         });
 
         setInterval(() => {
@@ -170,7 +178,7 @@ class LocalGameScript {
         });
 
         document.getElementById('btn-leave').addEventListener('click', () => {
-            remove(this.playerRef); // Salir del servidor
+            if (this.playerRef) remove(this.playerRef);
             pauseMenu.style.display = 'none';
             window.GameHandler.isPaused = false;
             document.getElementById('game-hud').style.display = 'none';
@@ -180,8 +188,7 @@ class LocalGameScript {
 
     updatePlayersListUI() {
         const listContainer = document.getElementById('server-players-list');
-        listContainer.innerHTML = ''; // Limpiar
-        
+        listContainer.innerHTML = '';
         if (!this.currentPlayersData) return;
 
         for (const id in this.currentPlayersData) {
@@ -209,7 +216,6 @@ class LocalGameScript {
                 }
                 div.appendChild(btn);
             }
-            
             listContainer.appendChild(div);
         }
     }
@@ -217,7 +223,6 @@ class LocalGameScript {
     addFriend(friendId) {
         const friendsRef = ref(this.db, 'users/' + this.myId + '/friends');
         update(friendsRef, { [friendId]: true }).then(() => {
-            console.log("Amigo agregado!");
             this.myFriends.push(friendId);
             this.updatePlayersListUI();
         });
@@ -272,55 +277,87 @@ class LocalGameScript {
         const thumb = document.getElementById('joystick-thumb');
         const gameContainer = document.getElementById('game-container');
         
-        const handleStart = (e) => {
-            e.preventDefault();
-            window.GameHandler.joystick.active = true;
-            base.style.opacity = '1';
-            const touch = e.touches ? e.touches[0] : e;
-            base.style.left = (touch.clientX - 60) + 'px';
-            base.style.bottom = 'auto';
-            base.style.top = (touch.clientY - 60) + 'px';
-            thumb.style.left = '50%'; thumb.style.top = '50%';
-        };
+        let joyTouchId = null;
+        let joyStartX = 0, joyStartY = 0;
 
-        const handleMove = (e) => {
-            if(!window.GameHandler.joystick.active) return;
-            e.preventDefault();
-            const touch = e.touches ? e.touches[0] : e;
-            const rect = base.getBoundingClientRect();
-            let x = touch.clientX - (rect.left + rect.width/2);
-            let y = touch.clientY - (rect.top + rect.height/2);
-            const dist = Math.min(35, Math.sqrt(x*x + y*y));
-            const angle = Math.atan2(y, x);
-            thumb.style.left = `calc(50% + ${Math.cos(angle) * dist}px)`;
-            thumb.style.top = `calc(50% + ${Math.sin(angle) * dist}px)`;
-            window.GameHandler.joystick.x = (Math.cos(angle) * dist) / 35;
-            window.GameHandler.joystick.y = (Math.sin(angle) * dist) / 35;
-        };
+        let camTouchId = null;
+        let camLastX = 0, camLastY = 0;
 
-        const handleEnd = (e) => {
-            window.GameHandler.joystick.active = false;
-            window.GameHandler.joystick.x = 0; window.GameHandler.joystick.y = 0;
-            thumb.style.left = '50%'; thumb.style.top = '50%';
-        };
-
-        base.addEventListener('touchstart', handleStart);
-        base.addEventListener('touchmove', handleMove);
-        base.addEventListener('touchend', handleEnd);
-
-        let camTouchStart = null;
         gameContainer.addEventListener('touchstart', (e) => {
-            if(e.target !== gameContainer && e.target.tagName !== 'CANVAS') return;
-            camTouchStart = e.touches[0].clientX;
-        });
+            if (window.GameHandler.isPaused) return;
+            for (let touch of e.changedTouches) {
+                // Ignorar si toca un botón
+                if (touch.target.tagName === 'BUTTON' || touch.target.tagName === 'INPUT') continue;
+
+                if (touch.clientX < window.innerWidth / 2 && joyTouchId === null) {
+                    joyTouchId = touch.identifier;
+                    joyStartX = touch.clientX;
+                    joyStartY = touch.clientY;
+                    base.style.display = 'block';
+                    base.style.left = (joyStartX - 60) + 'px';
+                    base.style.top = (joyStartY - 60) + 'px';
+                    thumb.style.left = '50%';
+                    thumb.style.top = '50%';
+                    window.GameHandler.joystick.active = true;
+                } else if (touch.clientX >= window.innerWidth / 2 && camTouchId === null) {
+                    camTouchId = touch.identifier;
+                    camLastX = touch.clientX;
+                    camLastY = touch.clientY;
+                }
+            }
+        }, { passive: false });
+
         gameContainer.addEventListener('touchmove', (e) => {
-            if(camTouchStart !== null && !window.GameHandler.joystick.active) {
-                const currentX = e.touches[0].clientX;
-                window.GameHandler.cameraAngle -= (currentX - camTouchStart) * 0.005;
-                camTouchStart = currentX;
+            e.preventDefault();
+            if (window.GameHandler.isPaused) return;
+            for (let touch of e.changedTouches) {
+                if (touch.identifier === joyTouchId) {
+                    let dx = touch.clientX - joyStartX;
+                    let dy = touch.clientY - joyStartY;
+                    let dist = Math.min(50, Math.sqrt(dx*dx + dy*dy));
+                    let angle = Math.atan2(dy, dx);
+                    
+                    thumb.style.left = `calc(50% + ${Math.cos(angle) * dist}px)`;
+                    thumb.style.top = `calc(50% + ${Math.sin(angle) * dist}px)`;
+                    
+                    window.GameHandler.joystick.x = Math.cos(angle) * dist / 50;
+                    window.GameHandler.joystick.y = Math.sin(angle) * dist / 50;
+                } else if (touch.identifier === camTouchId) {
+                    let dx = touch.clientX - camLastX;
+                    let dy = touch.clientY - camLastY;
+                    window.GameHandler.cameraAngle -= dx * 0.005;
+                    window.GameHandler.cameraPitch = Math.max(-0.2, Math.min(0.8, window.GameHandler.cameraPitch + dy * 0.005));
+                    camLastX = touch.clientX;
+                    camLastY = touch.clientY;
+                }
+            }
+        }, { passive: false });
+
+        gameContainer.addEventListener('touchend', (e) => {
+            for (let touch of e.changedTouches) {
+                if (touch.identifier === joyTouchId) {
+                    joyTouchId = null;
+                    window.GameHandler.joystick.active = false;
+                    window.GameHandler.joystick.x = 0;
+                    window.GameHandler.joystick.y = 0;
+                    base.style.display = 'none';
+                } else if (touch.identifier === camTouchId) {
+                    camTouchId = null;
+                }
             }
         });
-        gameContainer.addEventListener('touchend', () => camTouchStart = null);
+
+        gameContainer.addEventListener('touchcancel', (e) => {
+            for (let touch of e.changedTouches) {
+                if (touch.identifier === joyTouchId) {
+                    joyTouchId = null;
+                    window.GameHandler.joystick.active = false;
+                    base.style.display = 'none';
+                } else if (touch.identifier === camTouchId) {
+                    camTouchId = null;
+                }
+            }
+        });
     }
 
     startGameLoops() {
