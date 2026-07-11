@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Blox - Web</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Arial', 'Helvetica', sans-serif; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         body { margin: 0; overflow: hidden; background-color: #87CEEB; touch-action: none; }
         #game-container { width: 100vw; height: 100vh; position: relative; }
         canvas { display: block; }
@@ -26,31 +26,33 @@
         .btn-register:hover { background: #ff4757; color: white; box-shadow: 0 0 20px rgba(255, 71, 87, 0.4); }
         .auth-error { color: #ff4757; font-size: 14px; text-align: center; min-height: 20px; margin-top: 10px; }
 
-        /* === LOBBY === */
-        #home-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e5e5e5; color: #333; z-index: 900; display: none; flex-direction: column; }
-        .web-header { background: linear-gradient(to bottom, #00A2FF, #0077cc); padding: 0 20px; display: flex; align-items: center; color: white; font-weight: bold; border-bottom: 3px solid #005580; height: 60px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .web-logo { font-size: 32px; font-weight: 900; letter-spacing: -2px; text-shadow: 2px 2px 0 #005580; margin-right: 30px; }
-        .web-search { padding: 8px 12px; border: 2px solid #005580; width: 350px; border-radius: 4px; font-size: 14px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        /* === LOBBY MODERNA === */
+        #home-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; color: #333; z-index: 900; display: none; flex-direction: column; }
+        .web-header { background: #fff; padding: 0 20px; display: flex; align-items: center; border-bottom: 1px solid #ddd; height: 60px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .web-logo { font-size: 28px; font-weight: 900; letter-spacing: -1px; color: #00a2ff; margin-right: 30px; }
+        .web-search { padding: 10px 15px; border: 1px solid #ccc; width: 400px; border-radius: 20px; font-size: 14px; outline: none; transition: 0.2s; }
+        .web-search:focus { border-color: #00a2ff; box-shadow: 0 0 10px rgba(0, 162, 255, 0.2); }
         .web-nav { margin-left: auto; display: flex; gap: 15px; align-items: center; font-size: 14px; }
-        .web-nav span { padding: 6px 12px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); }
-        .web-tix { background: #00aa00; border: 1px solid #007700; text-shadow: 1px 1px 0 rgba(0,0,0,0.2); }
-        .web-robux { background: #ffcc00; color: #000; border: 1px solid #aa8800; }
+        .web-nav span { padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .web-tix { background: #e8fff0; color: #00aa00; border: 1px solid #00aa00; }
+        .web-robux { background: #fff8e8; color: #aa8800; border: 1px solid #ffcc00; }
+        .web-user { background: #00a2ff; color: white; }
         .web-body { display: flex; flex: 1; overflow: hidden; }
-        .web-sidebar { width: 200px; background: linear-gradient(to right, #d4d4d4, #e0e0e0); padding: 20px; border-right: 2px solid #b0b0b0; }
-        .web-sidebar h3 { margin: 0 0 15px 0; font-size: 16px; color: #333; border-bottom: 2px solid #999; padding-bottom: 5px; }
-        .web-sidebar ul { list-style: none; padding: 0; margin: 0; font-size: 14px; }
-        .web-sidebar li { padding: 10px 5px; cursor: pointer; color: #005580; border-bottom: 1px dashed #c0c0c0; }
-        .web-sidebar li:hover { background: #c8c8c8; color: #000; }
-        .web-content { flex: 1; padding: 40px; overflow-y: auto; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; }
-        .web-content h2 { color: #333; margin: 0 0 30px 0; font-size: 28px; border-bottom: 4px solid #00A2FF; padding-bottom: 5px; width: 100%; max-width: 800px; text-align: left; }
-        .game-grid { display: flex; gap: 25px; flex-wrap: wrap; width: 100%; max-width: 800px; }
-        .game-card { background: white; border: 1px solid #aaa; width: 220px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.15); border-radius: 6px; overflow: hidden; }
-        .game-card:hover { transform: translateY(-5px); border-color: #00A2FF; box-shadow: 0 8px 15px rgba(0,0,0,0.25); }
-        .game-thumb { width: 100%; height: 140px; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 24px; border-bottom: 3px solid rgba(0,0,0,0.2); text-shadow: 2px 2px 0 rgba(0,0,0,0.3); }
-        .game-info { padding: 15px; text-align: center; background: linear-gradient(to bottom, #fff, #f0f0f0); }
-        .game-info strong { display: block; color: #333; font-size: 18px; margin-bottom: 8px; }
-        .game-info .rating { color: #ff9900; font-size: 16px; }
-        .game-info .players { font-size: 12px; color: #666; margin-top: 6px; font-weight: bold; }
+        .web-sidebar { width: 220px; background: #fff; padding: 20px; border-right: 1px solid #ddd; }
+        .web-sidebar h3 { margin: 0 0 15px 0; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .web-sidebar ul { list-style: none; padding: 0; margin: 0; font-size: 15px; }
+        .web-sidebar li { padding: 12px 10px; cursor: pointer; color: #333; border-radius: 8px; margin-bottom: 5px; transition: 0.2s; font-weight: 500; }
+        .web-sidebar li:hover { background: #f0f2f5; color: #00a2ff; }
+        .web-content { flex: 1; padding: 30px; overflow-y: auto; background: #f0f2f5; }
+        .web-content h2 { color: #333; margin: 0 0 20px 0; font-size: 24px; font-weight: 800; }
+        .game-grid { display: flex; gap: 20px; flex-wrap: wrap; }
+        .game-card { background: #fff; border-radius: 12px; width: 200px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; }
+        .game-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .game-thumb { width: 100%; height: 120px; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 20px; text-shadow: 2px 2px 0 rgba(0,0,0,0.2); }
+        .game-info { padding: 12px; text-align: center; }
+        .game-info strong { display: block; color: #333; font-size: 16px; margin-bottom: 4px; }
+        .game-info .rating { color: #ff9900; font-size: 12px; }
+        .game-info .players { font-size: 11px; color: #888; margin-top: 4px; }
 
         /* === HUD 3D === */
         .ui-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
@@ -63,7 +65,13 @@
         .hud-leaderboard h3 { margin: 0 0 5px 0; font-size: 12px; text-transform: uppercase; color: #aaa; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; }
         .lb-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
         
-        /* === CONTROLES MÓVILES DINÁMICOS === */
+        /* Vida y Kills */
+        .hud-stats { position: absolute; bottom: 20px; left: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .stat-bar { width: 200px; height: 20px; background: rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2); }
+        .stat-fill { height: 100%; transition: width 0.3s; }
+        .hp-fill { background: #ff4757; }
+        .kill-counter { background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 5px; font-size: 14px; color: #fff; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+
         .mobile-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
         .joystick-base { position: absolute; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; pointer-events: none; display: none; }
         .joystick-thumb { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; background: rgba(255,255,255,0.5); border-radius: 50%; }
@@ -71,7 +79,6 @@
         .attack-btn:active { background: rgba(255, 71, 87, 0.9); }
         .chat-bubble-3d { background: rgba(255, 255, 255, 0.95); padding: 6px 12px; border-radius: 12px; color: #000; font-size: 13px; font-weight: 500; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transform: translateY(-20px); pointer-events: none; opacity: 0; transition: opacity 0.3s; }
         
-        /* === MENÚ DE PAUSA === */
         #pause-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); display: none; justify-content: center; align-items: center; z-index: 100; pointer-events: auto; flex-direction: column; gap: 20px; }
         .pause-box { background: rgba(30,30,40,0.9); border: 1px solid rgba(255,255,255,0.2); padding: 30px; border-radius: 12px; width: 300px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .pause-box h2 { margin: 0 0 20px 0; text-transform: uppercase; color: #00a2ff; }
@@ -87,25 +94,6 @@
         .add-friend-btn:disabled { background: #555; cursor: default; }
 
         #loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: white; display: flex; justify-content: center; align-items: center; z-index: 500; font-size: 24px; }
-        
-        /* === HUD DE SELL LEMONS === */
-        #game-specific-hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 15; }
-        .hud-lemon-money { position: absolute; top: 180px; left: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 15px; border-radius: 8px; font-size: 20px; font-weight: bold; border: 1px solid #fff; }
-        .hud-lemon-info { position: absolute; top: 180px; right: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 15px; border-radius: 8px; font-size: 16px; border: 1px solid #fff; }
-        .hud-lemon-sell-btn { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); padding: 15px 30px; background: #4cd964; color: #000; font-weight: bold; font-size: 18px; border: 2px solid #fff; border-radius: 12px; cursor: pointer; display: none; pointer-events: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .hud-lemon-shop-btn { position: absolute; bottom: 40px; right: 30px; padding: 15px 20px; background: #ffcc00; color: #000; font-weight: bold; font-size: 18px; border: 2px solid #fff; border-radius: 12px; cursor: pointer; pointer-events: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .lemon-shop-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; pointer-events: auto; z-index: 200; }
-        .lemon-shop-modal.open { display: flex; }
-        .lemon-shop-box { background: #fff; color: #333; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
-        .lemon-shop-box h2 { margin: 0 0 10px 0; }
-        .shop-money { font-size: 24px; font-weight: bold; color: #00aa00; margin-bottom: 20px; }
-        .upgrade { background: #f4f4f4; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 5px; }
-        .upgrade-btn { padding: 10px; background: #00a2ff; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .upgrade-btn:disabled { background: #ccc; }
-        .upgrade-btn.owned { background: #4cd964; }
-        .close-shop { margin-top: 10px; padding: 10px; background: #ff4757; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
-        .lemon-toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: rgba(0,0,0,0.8); color: #fff; padding: 15px 25px; border-radius: 12px; font-size: 24px; font-weight: bold; transition: transform 0.2s, opacity 0.2s; opacity: 0; z-index: 300; }
-        .lemon-toast.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     </style>
     <script type="importmap">
         {
@@ -141,7 +129,7 @@
                 <div class="web-logo">BLOX</div>
                 <input type="text" class="web-search" placeholder="Buscar personas, lugares...">
                 <div class="web-nav">
-                    <span id="user-display">Usuario</span>
+                    <span class="web-user" id="user-display">Usuario</span>
                     <span class="web-tix">0 Tix</span>
                     <span class="web-robux">0 Robux</span>
                 </div>
@@ -152,22 +140,22 @@
                     <ul><li>Inicio</li><li>Mi Personaje</li><li>Amigos (0)</li><li>Mensajes (0)</li><li>Lugares</li><li>Foros</li></ul>
                 </div>
                 <div class="web-content">
-                    <h2>Juegos</h2>
+                    <h2>Juegos Populares</h2>
                     <div class="game-grid">
                         <div class="game-card" id="btn-play-pvp">
                             <div class="game-thumb" style="background: linear-gradient(45deg, #cc0000, #0000cc);">⚔️ RED vs BLUE</div>
                             <div class="game-info">
                                 <strong>Sword Fight</strong>
                                 <span class="rating">★★★★★</span>
-                                <div class="players">100% - Multijugador</div>
+                                <div class="players">Multijugador - PvP</div>
                             </div>
                         </div>
                         <div class="game-card" id="btn-play-lemons">
                             <div class="game-thumb" style="background: linear-gradient(45deg, #ffcc00, #4caf50);">🍋 SELL LEMONS</div>
                             <div class="game-info">
                                 <strong>Sell Lemons</strong>
-                                <span class="rating">★★★★★</span>
-                                <div class="players">100% - Simulator</div>
+                                <span class="rating">★★★★☆</span>
+                                <div class="players">Simulador</div>
                             </div>
                         </div>
                     </div>
@@ -182,14 +170,17 @@
             </div>
             <div class="hud-leaderboard glass-panel">
                 <h3>Arena</h3>
-                <div class="lb-row" style="color: #3366ff"><span>Tú (Blue)</span><span>0</span></div>
-                <div class="lb-row" style="color: #ff3333"><span>Enemigo (Red)</span><span>0</span></div>
+                <div class="lb-row" style="color: #3366ff"><span>Tú (Blue)</span><span id="lb-kills">0 Kills</span></div>
+                <div class="lb-row" style="color: #ff3333"><span>Enemigo (Red)</span><span>0 Kills</span></div>
+            </div>
+            <div class="hud-stats">
+                <div class="stat-bar"><div class="stat-fill hp-fill" id="health-fill" style="width: 100%;"></div></div>
+                <div class="kill-counter">🗡️ Bajas: <span id="kills-counter">0</span></div>
             </div>
             <div class="mobile-controls">
                 <div class="joystick-base" id="joystick-base"><div class="joystick-thumb" id="joystick-thumb"></div></div>
                 <div class="attack-btn" id="attack-btn">⚔️</div>
             </div>
-            <div id="game-specific-hud"></div>
         </div>
 
         <div id="pause-menu">
